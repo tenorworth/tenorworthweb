@@ -58,10 +58,17 @@ Full runbook in [README.md](README.md#deploying).
 then switches to the HTTPS config on the next run. Never edit nginx on the VPS by hand;
 the repo owns `/etc/nginx/sites-available/tenorworth`.
 
+## Status
+
+Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.com
+(frontend shell). Cert auto-renews via certbot.
+
 ## Open items
 
 - `hello@tenorworth.com` is assumed in `site.ts`; confirm the mailbox exists (Hostinger email).
 - `SITE.bookingUrl` is empty; set a Calendly/Cal.com link and every "Book a call" CTA switches over.
-- Supabase: create a **new** project for Tenorworth (do not reuse SupremoAgent's
-  `lslzrqsiyqrzqwjtycpe`), then add `.mcp.json` pointing at it and fill `frontend/.env`.
+- Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
+  never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
+  (local + VPS) carries the URL and the publishable key. Secret keys stay in the
+  dashboard until a backend exists. RLS must be on for every table the app reads.
 - Backend runtime decision (see `backend/README.md`).
