@@ -22,7 +22,10 @@ MARKETING_SERVE_DIR="/var/www/tenorworth/marketing/dist"
 FRONTEND_SERVE_DIR="/var/www/tenorworth/frontend/dist"
 NGINX_AVAILABLE="/etc/nginx/sites-available/tenorworth"
 NGINX_ENABLED="/etc/nginx/sites-enabled/tenorworth"
-CERT="/etc/letsencrypt/live/tenorworth.com/fullchain.pem"
+# /etc/letsencrypt/live is root-only, so a non-root user cannot stat the cert
+# itself. The renewal config is world-readable and exists iff certbot has
+# issued the certificate, so we use it as the marker.
+CERT="/etc/letsencrypt/renewal/tenorworth.com.conf"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 step() { echo -e "\n${GREEN}>>> $1${NC}"; }
@@ -73,7 +76,7 @@ if [ -f "$CERT" ]; then
     echo "    TLS cert found — installing full HTTPS config."
 else
     SRC="$REPO_DIR/deploy/nginx/tenorworth-http.conf"
-    warn "No cert at $CERT — installing HTTP-only bootstrap config."
+    warn "No certificate yet ($CERT missing) — installing HTTP-only bootstrap config."
     warn "After DNS resolves here run:"
     warn "  sudo certbot certonly --nginx -d tenorworth.com -d www.tenorworth.com -d app.tenorworth.com"
     warn "then re-run this script to switch to HTTPS."
