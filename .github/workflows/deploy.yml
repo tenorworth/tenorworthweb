@@ -19,8 +19,15 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run build
+          cache-dependency-path: |
+            marketing/package-lock.json
+            frontend/package-lock.json
+      - name: Build marketing site
+        working-directory: marketing
+        run: npm ci && npm run build
+      - name: Build app frontend
+        working-directory: frontend
+        run: npm ci && npm run build
 
   deploy:
     needs: build-check
