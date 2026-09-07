@@ -4,12 +4,11 @@
 # ============================================================
 # Idempotent. Called by GitHub Actions after `git reset --hard
 # origin/main`, or by hand:
-#   ssh supremoagent@<vps> 'cd ~/tenorworth-repo && git pull && bash deploy/update.sh'
+#   ssh tenorworth@<vps> 'cd ~/repo && git pull && bash deploy/update.sh'
 #
-# Runs as the `supremoagent` user (shared VPS with supremoagent.com).
-# Needs passwordless sudo for: mkdir/rsync into /var/www, cp into
-# /etc/nginx, nginx -t, systemctl reload nginx — the same set
-# supremoagent's update.sh already relies on.
+# Runs as the dedicated `tenorworth` user (created by bootstrap-user.sh),
+# which owns /var/www/tenorworth and has scoped passwordless sudo for
+# exactly the nginx / systemd / certbot commands below.
 #
 # Layout on the VPS:
 #   /var/www/tenorworth/marketing/dist   tenorworth.com      (Astro)
@@ -37,8 +36,8 @@ npm run build
 echo "    Built $(find dist -name '*.html' | wc -l | tr -d ' ') pages."
 
 step "Deploying marketing to $MARKETING_SERVE_DIR"
-sudo mkdir -p "$MARKETING_SERVE_DIR"
-sudo rsync -a --delete "$REPO_DIR/marketing/dist/" "$MARKETING_SERVE_DIR/"
+mkdir -p "$MARKETING_SERVE_DIR"
+rsync -a --delete "$REPO_DIR/marketing/dist/" "$MARKETING_SERVE_DIR/"
 echo "    Synced."
 
 # ---------- App SPA (React/Vite) ----------
@@ -51,8 +50,8 @@ if [ -f "$REPO_DIR/frontend/package.json" ]; then
     npm ci --silent --no-audit --no-fund
     npm run build
     step "Deploying app to $FRONTEND_SERVE_DIR"
-    sudo mkdir -p "$FRONTEND_SERVE_DIR"
-    sudo rsync -a --delete "$REPO_DIR/frontend/dist/" "$FRONTEND_SERVE_DIR/"
+    mkdir -p "$FRONTEND_SERVE_DIR"
+    rsync -a --delete "$REPO_DIR/frontend/dist/" "$FRONTEND_SERVE_DIR/"
     echo "    Synced."
 else
     warn "No frontend/package.json — skipping app build."

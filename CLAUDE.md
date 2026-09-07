@@ -13,7 +13,7 @@ or anything from the SupremoAgent repo's secrets.
 marketing/   Astro 5 + Tailwind 4, static → tenorworth.com          (port 4322)
 frontend/    React 18 + Vite + TS + TanStack Query + Supabase → app.tenorworth.com (port 3001)
 backend/     NOT scaffolded. Runtime undecided (FastAPI like SupremoAgent, or Node). Listens on :8002.
-deploy/      update.sh (runs on VPS), nginx/ server blocks
+deploy/      bootstrap-user.sh (once), update.sh (every deploy), nginx/ server blocks
 brand/       source logo assets + contact sheet (do not edit; export from here)
 .github/     deploy.yml — build-check, then SSH to VPS and run deploy/update.sh
 ```
@@ -46,10 +46,12 @@ cd frontend  && npm run build                 # tsc + vite build → frontend/di
 
 ## Deployment
 
-Shared Ubuntu VPS with supremoagent.com, user `supremoagent`, nginx + certbot.
+Shared Ubuntu VPS with supremoagent.com (IONOS), but under a **dedicated `tenorworth`
+user** with its own SSH keys, `/var/www/tenorworth`, and a scoped sudoers file
+(`deploy/bootstrap-user.sh` creates all of it). Never deploy as `supremoagent`.
 Push to `main` → GitHub Actions → SSH → `git reset --hard origin/main` → `deploy/update.sh`.
 The workflow needs repo **variables** `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_REPO_DIR`
-(`/home/supremoagent/tenorworth-repo`) and **secrets** `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`.
+(`/home/tenorworth/repo`) and **secrets** `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`.
 Full runbook in [README.md](README.md#deploying).
 
 `update.sh` installs the HTTP-only nginx config until the Let's Encrypt cert exists,

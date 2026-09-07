@@ -25,7 +25,8 @@ cd frontend  && npm install && npm run dev     # http://localhost:3001
 
 ## Deploying
 
-The site shares the Ubuntu VPS with supremoagent.com (nginx, certbot, user `supremoagent`).
+The site shares the Ubuntu VPS with supremoagent.com (nginx, certbot) under its own
+service user `tenorworth`, so the two sites never share files, keys, or sudo rights.
 Push to `main` and GitHub Actions builds, SSHes in, and runs `deploy/update.sh`.
 
 ### One-time setup
@@ -40,31 +41,33 @@ Push to `main` and GitHub Actions builds, SSHes in, and runs `deploy/update.sh`.
 
 Remove any AAAA / parking CNAME records Hostinger added. Check with `dig +short tenorworth.com`.
 
-**2. VPS: deploy key for Actions → VPS.** On the VPS as `supremoagent`:
+**2. VPS: create the `tenorworth` user.** One command, run once as a sudoer on the VPS
+(the `supremoagent` user works). It creates the user, installs the deploy and operator
+public keys, creates `/var/www/tenorworth`, and grants scoped passwordless sudo:
 
 ```bash
-ssh-keygen -t ed25519 -C "tenorworth-actions" -f ~/.ssh/tenorworth_deploy -N ""
-cat ~/.ssh/tenorworth_deploy.pub >> ~/.ssh/authorized_keys
-ssh-keyscan -H "$(curl -s ifconfig.me)"      # → DEPLOY_KNOWN_HOSTS value
-cat ~/.ssh/tenorworth_deploy                  # → DEPLOY_SSH_KEY value (then delete this private key from the VPS)
+curl -fsSL https://raw.githubusercontent.com/tenorworth/tenorworthweb/main/deploy/bootstrap-user.sh | sudo bash
 ```
+
+Read [deploy/bootstrap-user.sh](deploy/bootstrap-user.sh) first; the public keys it
+installs are listed at the top.
 
 **3. GitHub → repo → Settings → Secrets and variables → Actions.**
 
 | Kind | Name | Value |
 |---|---|---|
 | Variable | `DEPLOY_HOST` | VPS IPv4 |
-| Variable | `DEPLOY_USER` | `supremoagent` |
-| Variable | `DEPLOY_REPO_DIR` | `/home/supremoagent/tenorworth-repo` |
-| Secret | `DEPLOY_SSH_KEY` | private key from step 2 |
-| Secret | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan` output from step 2 |
+| Variable | `DEPLOY_USER` | `tenorworth` |
+| Variable | `DEPLOY_REPO_DIR` | `/home/tenorworth/repo` |
+| Secret | `DEPLOY_SSH_KEY` | private half of the `tenorworth-actions` key |
+| Secret | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan -t ed25519 <vps-ip>` output |
 
 Also create an environment named `production` (Settings → Environments); the workflow targets it.
 
 **4. First deploy.** Actions → Deploy → Run workflow. `update.sh` builds both sites and
 installs the **HTTP-only** nginx config (no cert yet). Confirm `http://tenorworth.com` loads.
 
-**5. TLS.** On the VPS:
+**5. TLS.** On the VPS as `tenorworth` (certbot is in its sudo allowlist):
 
 ```bash
 sudo certbot certonly --nginx -d tenorworth.com -d www.tenorworth.com -d app.tenorworth.com
@@ -74,11 +77,11 @@ Then re-run the workflow (or `bash deploy/update.sh` on the VPS). It detects the
 switches to the HTTPS config with the `www` → apex redirect.
 
 **6. App env.** `frontend/.env` is not tracked. Create it on the VPS at
-`/home/supremoagent/tenorworth-repo/frontend/.env` from `frontend/.env.example` once the
+`/home/tenorworth/repo/frontend/.env` from `frontend/.env.example` once the
 Supabase project exists.
 
 ### Manual deploy
 
 ```bash
-ssh supremoagent@<vps> 'cd ~/tenorworth-repo && git pull && bash deploy/update.sh'
+ssh tenorworth@<vps> 'cd ~/repo && git pull && bash deploy/update.sh'
 ```
