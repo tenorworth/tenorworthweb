@@ -1,0 +1,105 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTA from '../components/CTA.astro';
+
+const engagements = [
+  {
+    id: 'roadmap',
+    name: 'AI Readiness Roadmap',
+    length: 'Two weeks · fixed fee',
+    lede: 'Find out where AI will pay back in your operation, and what has to be true before it can.',
+    deliverables: [
+      'Interviews with operations, compliance, and the people doing the work',
+      'Inventory of the data, systems, and policies an AI system would touch',
+      'Ranked list of candidate workflows with an estimated return for each',
+      'Governance gaps: audit, access, retention, vendor terms, model risk',
+      'A written plan for the first pilot, with scope, metric, and price',
+    ],
+    outcome: 'A decision you can defend to your board and your examiner.',
+  },
+  {
+    id: 'pilot',
+    name: 'Pilot',
+    length: 'Four to six weeks · fixed scope',
+    lede: 'One workflow, your real data, a working system your staff use by the end.',
+    deliverables: [
+      'Written scope, success metric, and data boundary agreed before build',
+      'A deployed agent, retrieval system, or automation in your environment',
+      'Audit logging, access control, and human review built in from day one',
+      'Staff training and a runbook for the people who own it afterwards',
+      'A measured result against the metric, reported plainly',
+    ],
+    outcome: 'Proof, on your data, that the return is real.',
+  },
+  {
+    id: 'architect',
+    name: 'Fractional AI Architect',
+    length: 'Monthly retainer',
+    lede: 'Senior ownership of your AI program without the cost of a full-time hire.',
+    deliverables: [
+      'A named architect accountable for the program, present every week',
+      'Vendor and model selection, contract review, and cost control',
+      'Model governance: policy, monitoring, incident response',
+      'Scoping and delivery of subsequent pilots and rollouts',
+      'Briefings for leadership and the board in language they use',
+    ],
+    outcome: 'A program that compounds instead of a series of one-off projects.',
+  },
+];
+
+const capabilities = [
+  { name: 'Deployed agents', body: 'Assistants that take real actions inside your systems, with approvals and logs.' },
+  { name: 'Retrieval on your documents', body: 'Answers grounded in your policies, contracts, and records, with citations and access control.' },
+  { name: 'Workflow automation', body: 'Intake, triage, drafting, reconciliation, and reporting, handed off to people where judgment is required.' },
+  { name: 'Governance and audit', body: 'Model risk policy, evaluation, monitoring, and the paper trail an examiner expects.' },
+];
+---
+<BaseLayout title="Services" description="Three fixed-scope engagements: a two-week AI Readiness Roadmap, a four-to-six-week Pilot on your real data, and a Fractional AI Architect retainer.">
+  <section class="container-wide py-20 sm:py-28">
+    <p class="eyebrow">Services</p>
+    <h1 class="mt-6 max-w-3xl text-5xl leading-[1.05] text-balance sm:text-6xl">Three engagements. Each with a scope, a price, and a measure.</h1>
+    <p class="mt-8 max-w-2xl text-lg leading-relaxed text-ink-muted text-pretty">
+      They are designed to be taken in order, but each stands on its own. Nothing is open-ended.
+    </p>
+  </section>
+
+  <div class="container-wide divide-y divide-cream-line border-y border-cream-line">
+    {engagements.map((e, i) => (
+      <section id={e.id} class="grid gap-10 py-20 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <span class="font-display text-3xl text-brass">0{i + 1}</span>
+          <h2 class="mt-4 text-3xl sm:text-4xl">{e.name}</h2>
+          <p class="mt-3 text-xs uppercase tracking-[0.14em] text-ink-muted">{e.length}</p>
+          <p class="mt-6 text-lg leading-relaxed text-ink-muted text-pretty">{e.lede}</p>
+        </div>
+        <div class="lg:col-span-7">
+          <h3 class="eyebrow">What you get</h3>
+          <ul class="mt-4 space-y-3">
+            {e.deliverables.map((d) => (
+              <li class="flex gap-4 leading-relaxed">
+                <span class="mt-3 h-px w-5 shrink-0 bg-brass"></span>
+                <span>{d}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-8 border-l-2 border-brass pl-5 font-display text-xl">{e.outcome}</p>
+        </div>
+      </section>
+    ))}
+  </div>
+
+  <section class="container-wide py-24">
+    <p class="eyebrow">What we build</p>
+    <h2 class="mt-4 max-w-2xl text-3xl text-balance sm:text-4xl">The four things that reliably earn their keep.</h2>
+    <div class="mt-12 grid gap-8 sm:grid-cols-2">
+      {capabilities.map((c) => (
+        <div class="border-t border-cream-line pt-6">
+          <h3 class="text-xl">{c.name}</h3>
+          <p class="mt-3 leading-relaxed text-ink-muted text-pretty">{c.body}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <CTA source="services_footer" headline="Not sure which engagement fits?" body="Most clients start with the Roadmap. If you already know the workflow and have the data, a Pilot may be the right first step. A short call will settle it." />
+</BaseLayout>

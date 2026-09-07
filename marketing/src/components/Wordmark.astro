@@ -1,0 +1,14 @@
+---
+import Mark from './Mark.astro';
+import { SITE } from '../config/site';
+export interface Props { class?: string; markClass?: string; textClass?: string }
+const {
+  class: cls = 'flex items-center gap-2.5',
+  markClass = 'h-7 w-auto',
+  textClass = 'text-[1.35rem]',
+} = Astro.props;
+---
+<a href="/" class={cls} aria-label={`${SITE.name} home`}>
+  <Mark class={markClass} />
+  <span class={`font-display font-medium tracking-tight ${textClass}`}>{SITE.name}</span>
+</a>

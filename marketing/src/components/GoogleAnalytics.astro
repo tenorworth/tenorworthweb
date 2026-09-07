@@ -1,0 +1,28 @@
+---
+// Renders nothing unless PUBLIC_GA_MEASUREMENT_ID is set. Mirrors clicks on
+// [data-event] elements into GA so CTAs need no per-button wiring.
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
+---
+{gaId && (
+  <Fragment>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+    <script is:inline define:vars={{ gaId }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', gaId);
+      document.addEventListener('click', function (e) {
+        try {
+          var el = e.target instanceof Element ? e.target.closest('[data-event]') : null;
+          if (!el) return;
+          var params = {};
+          var ds = el.dataset || {};
+          for (var k in ds) { if (k !== 'event') params[k] = ds[k]; }
+          if (el.href) params.link_url = el.href;
+          gtag('event', el.getAttribute('data-event'), params);
+        } catch (_) {}
+      }, { capture: true });
+    </script>
+  </Fragment>
+)}

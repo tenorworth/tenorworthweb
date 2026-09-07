@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#141B2D"/>
+  <!-- tenor line: steady, one measured rise, brass point (lower third) -->
+  <path d="M0,470 L640,470 C760,470 860,430 960,395" fill="none" stroke="#B8985A" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="985" cy="387" r="11" fill="#B8985A"/>
+  <!-- mark -->
+  <g transform="translate(96,120) scale(0.5)" fill="#F4F1EA">
+    <path d="M143,106 L177,106 L175,232 C176,253 195,261 224,262 L96,262 C125,261 144,253 145,232 Z" transform="translate(-30,-60)"/>
+    <rect x="66" y="202" width="128" height="8"/>
+    <g transform="translate(130,52) rotate(-10)">
+      <path d="M-114,-12 C-108,-8 -80,-6 -30,-10 C-10,-11 10,-11 30,-10 C70,-8 90,-6 102,-7 L102,7 C90,6 70,8 30,10 C10,11 -10,11 -30,10 C-80,6 -108,8 -114,12 Z"/>
+      <circle fill="#B8985A" cx="126" cy="0" r="19"/>
+    </g>
+  </g>
+  <text x="96" y="300" font-family="Fraunces, 'Source Serif 4', Georgia, serif" font-size="72" font-weight="500" fill="#F4F1EA" letter-spacing="-1">Tenorworth</text>
+  <text x="98" y="350" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif" font-size="26" fill="#B8985A" letter-spacing="4">AI, DEPLOYED WITH CARE.</text>
+</svg>

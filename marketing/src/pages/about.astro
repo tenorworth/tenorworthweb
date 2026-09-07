@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTA from '../components/CTA.astro';
+import { SITE } from '../config/site';
+---
+<BaseLayout title="About" description="Tenorworth is the AI implementation practice of TravAlarm, Inc., built on seventeen years of delivery inside regulated institutions.">
+  <section class="container-wide py-20 sm:py-28">
+    <p class="eyebrow">About</p>
+    <h1 class="mt-6 max-w-3xl text-5xl leading-[1.05] text-balance sm:text-6xl">Steady course. Measurable worth.</h1>
+  </section>
+
+  <section class="container-wide grid gap-12 border-t border-cream-line py-20 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <div class="rule-brass mb-6"></div>
+      <h2 class="text-3xl text-balance">The name does the work.</h2>
+    </div>
+    <div class="space-y-6 text-lg leading-relaxed text-ink-muted lg:col-span-7 text-pretty">
+      <p>
+        <em>Tenor</em> is the steady course a thing holds: the tenor of an agreement, of a
+        conversation. <em>Worth</em> is measurable value. Together they describe what we think AI
+        should be inside a serious business: steady, measurable, and quietly reliable. The opposite
+        of the hype most operators are tired of hearing.
+      </p>
+      <p>
+        Tenorworth is the AI implementation practice of {SITE.legalEntity}. We work with small and
+        mid-market businesses in {SITE.region} where trust and compliance are not optional.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-wide grid gap-12 border-t border-cream-line py-20 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <div class="rule-brass mb-6"></div>
+      <h2 class="text-3xl text-balance">Seventeen years in regulated environments.</h2>
+    </div>
+    <div class="space-y-6 text-lg leading-relaxed text-ink-muted lg:col-span-7 text-pretty">
+      <p>
+        The practice is led by someone who has built and shipped systems inside JPMorgan Chase,
+        Scotiabank, DaVita, and PwC. That background is why the governance, audit trail, and
+        data-boundary questions get answered before the demo, not after.
+      </p>
+      <p>
+        We are deliberately small. Every engagement has one senior person accountable from the first
+        conversation to the reported result.
+      </p>
+    </div>
+  </section>
+
+  <section class="container-wide grid gap-12 border-t border-cream-line py-20 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <div class="rule-brass mb-6"></div>
+      <h2 class="text-3xl text-balance">How we work.</h2>
+    </div>
+    <ul class="space-y-6 text-lg leading-relaxed text-ink-muted lg:col-span-7 text-pretty">
+      <li><strong class="text-ink">Composed.</strong> No urgency theatre. Decisions are made with the information in front of us.</li>
+      <li><strong class="text-ink">Precise.</strong> Scope, price, and success measure in writing, every time.</li>
+      <li><strong class="text-ink">Senior.</strong> The person you meet is the person who does the work.</li>
+      <li><strong class="text-ink">Quietly confident.</strong> We will tell you when AI is the wrong answer.</li>
+    </ul>
+  </section>
+
+  <CTA source="about_footer" />
+</BaseLayout>

@@ -1,0 +1,22 @@
+---
+import Wordmark from './Wordmark.astro';
+import { NAV, contactHref } from '../config/site';
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+<header class="sticky top-0 z-40 border-b border-cream-line/80 bg-cream/85 backdrop-blur">
+  <div class="container-wide flex h-16 items-center justify-between">
+    <Wordmark />
+    <nav class="hidden items-center gap-8 text-sm sm:flex" aria-label="Primary">
+      {NAV.map((item) => (
+        <a
+          href={item.href}
+          class:list={['transition hover:text-brass-deep', path === item.href ? 'text-ink' : 'text-ink-muted']}
+          aria-current={path === item.href ? 'page' : undefined}
+        >{item.label}</a>
+      ))}
+    </nav>
+    <a href={contactHref()} class="btn-primary px-4 py-2" data-event="cta_click" data-source="header">
+      Book a call
+    </a>
+  </div>
+</header>

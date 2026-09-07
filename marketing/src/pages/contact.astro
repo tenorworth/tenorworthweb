@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, contactHref } from '../config/site';
+---
+<BaseLayout title="Contact" description="Book a thirty-minute call with Tenorworth, or email us directly.">
+  <section class="container-wide grid gap-12 py-20 sm:py-28 lg:grid-cols-12">
+    <div class="lg:col-span-7">
+      <p class="eyebrow">Contact</p>
+      <h1 class="mt-6 text-5xl leading-[1.05] text-balance sm:text-6xl">Start with a conversation.</h1>
+      <p class="mt-8 max-w-xl text-lg leading-relaxed text-ink-muted text-pretty">
+        Thirty minutes. Bring the workflow that costs you the most time and the compliance question
+        you assume will block it. We will tell you honestly whether AI belongs there, and what it
+        would take.
+      </p>
+      <div class="mt-10 flex flex-wrap gap-3">
+        <a href={contactHref()} class="btn-primary" data-event="cta_click" data-source="contact_page">Book a call</a>
+        <a href={`mailto:${SITE.email}`} class="btn-secondary">Email {SITE.email}</a>
+      </div>
+    </div>
+    <aside class="lg:col-span-5 lg:pl-12">
+      <div class="rounded-lg border border-cream-line bg-cream-deep/50 p-8">
+        <h2 class="eyebrow">What to expect</h2>
+        <ol class="mt-5 space-y-5 leading-relaxed">
+          <li class="flex gap-4"><span class="font-display text-brass">01</span><span>A reply within one business day.</span></li>
+          <li class="flex gap-4"><span class="font-display text-brass">02</span><span>A short call to understand the workflow and the constraints.</span></li>
+          <li class="flex gap-4"><span class="font-display text-brass">03</span><span>A written recommendation. Sometimes that recommendation is "not yet."</span></li>
+        </ol>
+        <p class="mt-8 border-t border-cream-line pt-6 text-sm text-ink-muted">
+          Based in {SITE.region}. We work on site where it matters and remotely where it does not.
+        </p>
+      </div>
+    </aside>
+  </section>
+</BaseLayout>

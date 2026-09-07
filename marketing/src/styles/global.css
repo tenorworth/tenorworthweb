@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ── Brand tokens (see BRAND.md) ─────────────────────────────────────────
+   Three colours, two typefaces. Accent is brass; teal is deliberately NOT
+   defined so nobody reaches for it by accident.                            */
+@theme {
+  --color-ink: #141B2D;
+  --color-ink-soft: #1E2740;
+  --color-ink-muted: #4A5266;
+  --color-cream: #F4F1EA;
+  --color-cream-deep: #EAE5DA;
+  --color-cream-line: #D9D3C5;
+  --color-brass: #B8985A;
+  --color-brass-deep: #9A7E48;
+
+  --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --tracking-eyebrow: 0.16em;
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection { background-color: var(--color-brass); color: var(--color-ink); }
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+}
+
+@layer components {
+  .container-wide  { @apply mx-auto max-w-6xl px-6 sm:px-8; }
+  .container-prose { @apply mx-auto max-w-[68ch] px-6 sm:px-8; }
+
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[var(--tracking-eyebrow)] text-brass-deep;
+  }
+
+  /* A single brass rule — the site's only ornament. */
+  .rule-brass { @apply h-px w-12 bg-brass; }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-ink px-5 py-3 text-sm
+           font-medium text-cream transition hover:bg-ink-soft
+           focus:outline-none focus:ring-2 focus:ring-brass/70 focus:ring-offset-2 focus:ring-offset-cream;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-ink/25 px-5 py-3 text-sm
+           font-medium text-ink transition hover:border-brass hover:text-brass-deep;
+  }
+  .btn-on-ink {
+    @apply inline-flex items-center justify-center rounded-md bg-brass px-5 py-3 text-sm
+           font-medium text-ink transition hover:bg-[#C9AA6C];
+  }
+
+  .link-quiet { @apply underline decoration-brass/60 underline-offset-4 transition hover:decoration-brass; }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty  { text-wrap: pretty; }
+  /* Faint engineering-paper grid for off-white sections (from the brand brief). */
+  .bg-grid-paper {
+    background-image:
+      linear-gradient(to right, rgba(20, 27, 45, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20, 27, 45, 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+}

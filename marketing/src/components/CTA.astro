@@ -1,0 +1,20 @@
+---
+import { contactHref, SITE } from '../config/site';
+export interface Props { headline?: string; body?: string; source?: string }
+const {
+  headline = 'Start with a conversation, not a proposal.',
+  body = 'Thirty minutes. Bring the workflow that costs you the most time, and the compliance question you assume will block it. We will tell you honestly whether AI belongs there.',
+  source = 'cta',
+} = Astro.props;
+---
+<section class="container-wide mt-28">
+  <div class="rounded-lg bg-ink px-8 py-14 text-cream sm:px-14 sm:py-16">
+    <div class="rule-brass mb-6"></div>
+    <h2 class="max-w-2xl text-3xl text-balance sm:text-4xl">{headline}</h2>
+    <p class="mt-5 max-w-2xl text-cream/75 text-pretty">{body}</p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href={contactHref()} class="btn-on-ink" data-event="cta_click" data-source={source}>Book a call</a>
+      <a href={`mailto:${SITE.email}`} class="btn-secondary border-cream/30 text-cream hover:border-brass hover:text-brass">Email {SITE.email}</a>
+    </div>
+  </div>
+</section>

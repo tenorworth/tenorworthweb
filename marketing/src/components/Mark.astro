@@ -1,0 +1,22 @@
+---
+// The tenor-line mark: a serif T whose crossbar holds steady, then rises once
+// and ends in a brass point. Inherits `currentColor` for the ink; the point
+// is always brass. Source of truth: brand/mark-transparent.svg.
+export interface Props { class?: string; title?: string }
+const { class: cls = 'h-7 w-auto', title } = Astro.props;
+---
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="30 60 280 220"
+  class={cls}
+  role={title ? 'img' : undefined}
+  aria-hidden={title ? undefined : 'true'}
+>
+  {title && <title>{title}</title>}
+  <path fill="currentColor" d="M143,106 L177,106 L175,232 C176,253 195,261 224,262 L96,262 C125,261 144,253 145,232 Z"/>
+  <rect fill="currentColor" x="96" y="262" width="128" height="8"/>
+  <g transform="translate(160,112) rotate(-10)">
+    <path fill="currentColor" d="M-114,-12 C-108,-8 -80,-6 -30,-10 C-10,-11 10,-11 30,-10 C70,-8 90,-6 102,-7 L102,7 C90,6 70,8 30,10 C10,11 -10,11 -30,10 C-80,6 -108,8 -114,12 Z"/>
+    <circle fill="#B8985A" cx="126" cy="0" r="19"/>
+  </g>
+</svg>
