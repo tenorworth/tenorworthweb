@@ -6,6 +6,9 @@
 **/.env.*
 !**/.env.example
 
+# Supabase CLI link state (`supabase link` writes it; pooler URL inside)
+supabase/.temp/
+
 # Claude Code per-user state
 .claude/settings.local.json
 .claude/cache/
