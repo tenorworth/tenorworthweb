@@ -2,6 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CTA from '../components/CTA.astro';
 import { SITE } from '../config/site';
+import { Image } from 'astro:assets';
+
+// Principal's photo. Drop a file at src/assets/arka-bala.{jpg,png} and it appears;
+// while it is missing the section renders without a photo instead of a broken image.
+const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/arka-bala.{jpg,jpeg,png}', { eager: true });
+const photo = Object.values(photos)[0]?.default;
 ---
 <BaseLayout title="About" description="Tenorworth is the AI implementation practice of TravAlarm, Inc., built on seventeen years of delivery inside regulated institutions.">
   <section class="container-wide py-20 sm:py-28">
@@ -22,7 +28,7 @@ import { SITE } from '../config/site';
         of the hype most operators are tired of hearing.
       </p>
       <p>
-        Tenorworth is the AI implementation practice of {SITE.legalEntity}. We work with small and
+        Tenorworth is the AI implementation practice of {SITE.legalEntity} We work with small and
         mid-market businesses in {SITE.region} where trust and compliance are not optional.
       </p>
     </div>
@@ -36,13 +42,48 @@ import { SITE } from '../config/site';
     <div class="space-y-6 text-lg leading-relaxed text-ink-muted lg:col-span-7 text-pretty">
       <p>
         The practice is led by someone who has built and shipped systems inside JPMorgan Chase,
-        Scotiabank, DaVita, and PwC. That background is why the governance, audit trail, and
-        data-boundary questions get answered before the demo, not after.
+        Scotiabank, KPMG, and a $5B specialty insurer. That background is why the governance,
+        audit trail, and data-boundary questions get answered before the demo, not after.
       </p>
       <p>
         We are deliberately small. Every engagement has one senior person accountable from the first
         conversation to the reported result.
       </p>
+    </div>
+  </section>
+
+  <section class="container-wide grid gap-12 border-t border-cream-line py-20 lg:grid-cols-12">
+    <div class="lg:col-span-5">
+      <div class="rule-brass mb-6"></div>
+      {photo && (
+        <Image
+          src={photo}
+          alt="Arka Bala, Principal AI Architect at Tenorworth"
+          width={560}
+          height={560}
+          class="mb-8 aspect-square w-full max-w-xs object-cover object-top"
+        />
+      )}
+      <h2 class="text-3xl text-balance">Arka Bala</h2>
+      <p class="eyebrow mt-3">Principal AI Architect</p>
+    </div>
+    <div class="space-y-6 text-lg leading-relaxed text-ink-muted lg:col-span-7 text-pretty">
+      <p>
+        Arka has spent seventeen years designing data and AI platforms inside regulated
+        institutions: a 100-petabyte data lake at JPMorgan Chase, the global cloud data platform
+        at Scotiabank, the enterprise data lake at KPMG, and most recently the agentic AI
+        architecture and its governance process at a $5B specialty insurer.
+      </p>
+      <p>
+        The work is hands-on. Arka builds the agents, the retrieval over a client's own documents,
+        and the controls around them, rather than handing a deck to someone else. Arka is a HIPAA
+        Certified Professional and a Certified Scrum Master, and works from San Diego.
+      </p>
+      {SITE.linkedin && (
+        <p>
+          <a href={SITE.linkedin} rel="me noopener" class="link-quiet text-ink">Arka on LinkedIn</a>
+        </p>
+      )}
     </div>
   </section>
 

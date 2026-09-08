@@ -7,7 +7,7 @@ The name does real work for you: "tenor" is the steady course a thing holds (the
 **Positioning (the four sentences you'll repeat everywhere):**
 - *Who:* Small and mid-market businesses in Southern California where trust and compliance matter — community healthcare, credit unions and RIAs, law firms, life sciences, and hospitality operators.
 - *What:* Not strategy decks. Deployed agents, RAG on their own documents, and workflow automation that their staff actually use.
-- *How:* Fixed-scope engagements — a two-week AI Readiness Roadmap, a 4–6 week Pilot on their real data, and a Fractional AI Architect retainer — delivered by someone who has built this inside JPMC, Scotiabank, DaVita, and PwC.
+- *How:* Fixed-scope engagements — a two-week AI Readiness Roadmap, a 4–6 week Pilot on their real data, and a Fractional AI Architect retainer — delivered by someone who has built this inside JPMorgan Chase, Scotiabank, KPMG, and a $5B specialty insurer.
 - *Why us:* 17 years in regulated environments means the governance, audit trail, and data-boundary questions get answered before the demo, not after.
 
 **Tagline options:** "AI, deployed with care." / "Working AI for regulated business." / "Steady AI. Measurable worth." (the last one leans on the name; the first is the safest for a business card.)

@@ -11,7 +11,7 @@ export const SITE = {
   email: 'hello@tenorworth.com',
   bookingUrl: '',
   region: 'Southern California',
-  linkedin: '',
+  linkedin: 'https://www.linkedin.com/in/arkajitbala',
 } as const;
 
 export function contactHref(): string {
