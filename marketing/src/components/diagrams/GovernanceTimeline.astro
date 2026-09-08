@@ -1,0 +1,64 @@
+---
+// B3 in brand/image-prompts.md. Two eight-week timelines on ink. The typical
+// vendor demos in week one and meets the governance questions in weeks five
+// to eight. Tenorworth settles the same five questions in the first week,
+// demos in week three, and is live by week six. Hollow circle for "stalled";
+// no red anywhere.
+export interface Props { class?: string }
+const { class: cls = '' } = Astro.props;
+const x0 = 170, x1 = 880;
+const xEnd = 928; // where the vendor timeline stalls
+const wk = (w: number) => x0 + ((x1 - x0) / 8) * w;
+const questions = ['Audit trail', 'Access control', 'Data boundary', 'Retention', 'Model risk'];
+---
+<figure class={`overflow-x-auto ${cls}`}>
+  <svg viewBox="0 0 960 330" class="block h-auto w-full min-w-[720px]" role="img" aria-labelledby="gov-title">
+    <title id="gov-title">Governance before the demo: a typical vendor demos in week one and stalls on five governance questions in weeks five to eight; Tenorworth answers them in week one, demos in week three, and is live by week six</title>
+    <style>
+      .gov-row   { font: 500 15px var(--font-display); fill: var(--color-cream); }
+      .gov-axis  { font: 400 11px var(--font-sans); fill: color-mix(in srgb, var(--color-cream) 55%, transparent); }
+      .gov-label { font: 400 12px var(--font-sans); fill: color-mix(in srgb, var(--color-cream) 80%, transparent); }
+      .gov-brass { font: 500 12px var(--font-sans); fill: var(--color-brass); }
+      .gov-q     { font: 600 18px var(--font-display); fill: var(--color-brass); }
+      .gov-line  { stroke: color-mix(in srgb, var(--color-cream) 35%, transparent); stroke-width: 1.5; }
+      .gov-tick  { stroke: color-mix(in srgb, var(--color-cream) 18%, transparent); stroke-width: 1; }
+      .gov-cap   { font: 400 13px var(--font-sans); fill: color-mix(in srgb, var(--color-cream) 70%, transparent); }
+    </style>
+
+    <!-- week ticks -->
+    {Array.from({ length: 9 }, (_, w) => (
+      <g>
+        <line x1={wk(w)} y1="40" x2={wk(w)} y2="250" class="gov-tick" />
+        <text x={wk(w)} y="270" text-anchor="middle" class="gov-axis">Week {w}</text>
+      </g>
+    ))}
+
+    <!-- Typical vendor -->
+    <text x="30" y="95" class="gov-row">Typical vendor</text>
+    <line x1={x0} y1="90" x2={xEnd} y2="90" class="gov-line" />
+    <circle cx={wk(1)} cy="90" r="6" fill="var(--color-cream)" />
+    <text x={wk(1)} y="70" text-anchor="middle" class="gov-label">Demo</text>
+    {questions.map((q, i) => (
+      <g>
+        <text x={wk(4 + i)} y="97" text-anchor="middle" class="gov-q">?</text>
+        <text x={wk(4 + i)} y="122" text-anchor="middle" class="gov-label">{q}</text>
+      </g>
+    ))}
+    <circle cx={xEnd} cy="90" r="6" fill="none" stroke="var(--color-cream)" stroke-width="1.5" />
+    <text x={xEnd - 6} y="70" text-anchor="middle" class="gov-label">Stalled</text>
+
+    <!-- Tenorworth -->
+    <text x="30" y="205" class="gov-row">Tenorworth</text>
+    <line x1={x0} y1="200" x2={x1} y2="200" class="gov-line" />
+    {questions.map((_, i) => (
+      <circle cx={wk(0.15 + i * 0.2)} cy="200" r="4.5" fill="var(--color-brass)" />
+    ))}
+    <text x={wk(0.55)} y="232" text-anchor="middle" class="gov-brass">Five questions answered</text>
+    <circle cx={wk(3)} cy="200" r="6" fill="var(--color-cream)" />
+    <text x={wk(3)} y="180" text-anchor="middle" class="gov-label">Demo</text>
+    <circle cx={wk(6)} cy="200" r="8" fill="var(--color-brass)" />
+    <text x={wk(6)} y="180" text-anchor="middle" class="gov-brass">Live</text>
+
+    <text x="30" y="312" class="gov-cap">Audit trail · Access control · Data boundary · Retention · Model risk. Answered before anyone sees a prototype.</text>
+  </svg>
+</figure>

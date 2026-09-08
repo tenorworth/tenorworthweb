@@ -1,0 +1,69 @@
+---
+// B4 in brand/image-prompts.md. Intake → agent drafts → confidence check →
+// either a person approves or the item is routed to a person → action. Every
+// node feeds the audit log. Brass is reserved for the human nodes.
+export interface Props { class?: string }
+const { class: cls = '' } = Astro.props;
+---
+<figure class={`overflow-x-auto ${cls}`}>
+  <svg viewBox="0 0 960 330" class="block h-auto w-full min-w-[720px]" role="img" aria-labelledby="hil-title">
+    <title id="hil-title">How a deployed workflow runs: intake, an agent drafts, a confidence check routes to human approval or to a person, then action; every step writes to the audit log</title>
+    <style>
+      .hil-box   { fill: var(--color-cream); stroke: var(--color-ink); stroke-width: 1.5; }
+      .hil-human { fill: var(--color-brass); stroke: var(--color-brass-deep); stroke-width: 1.5; }
+      .hil-label { font: 500 14px var(--font-sans); fill: var(--color-ink); }
+      .hil-small { font: 400 12px var(--font-sans); fill: var(--color-ink-muted); }
+      .hil-flow  { fill: none; stroke: var(--color-ink); stroke-width: 1.5; }
+      .hil-drop  { fill: none; stroke: var(--color-ink); stroke-width: 1; stroke-dasharray: 2 4; opacity: 0.55; }
+      .hil-log   { fill: var(--color-ink); }
+      .hil-logtx { font: 500 13px var(--font-sans); fill: var(--color-cream); }
+    </style>
+    <defs>
+      <marker id="hil-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" fill="var(--color-ink)" />
+      </marker>
+    </defs>
+
+    <!-- Intake -->
+    <rect x="30" y="110" width="120" height="50" rx="4" class="hil-box" />
+    <text x="90" y="140" text-anchor="middle" class="hil-label">Intake</text>
+
+    <!-- Agent drafts -->
+    <line x1="150" y1="135" x2="190" y2="135" class="hil-flow" marker-end="url(#hil-arrow)" />
+    <rect x="190" y="110" width="130" height="50" rx="4" class="hil-box" />
+    <text x="255" y="140" text-anchor="middle" class="hil-label">Agent drafts</text>
+
+    <!-- Confidence check (diamond) -->
+    <line x1="320" y1="135" x2="368" y2="135" class="hil-flow" marker-end="url(#hil-arrow)" />
+    <path d="M430 88 L492 135 L430 182 L368 135 Z" class="hil-box" />
+    <text x="430" y="131" text-anchor="middle" class="hil-label">Confidence</text>
+    <text x="430" y="148" text-anchor="middle" class="hil-label">check</text>
+
+    <!-- Above threshold → Human approves -->
+    <path d="M492 135 H520 V75 H560" class="hil-flow" marker-end="url(#hil-arrow)" />
+    <text x="530" y="62" class="hil-small">Above threshold</text>
+    <rect x="560" y="50" width="150" height="50" rx="4" class="hil-human" />
+    <text x="635" y="80" text-anchor="middle" class="hil-label">Human approves</text>
+
+    <!-- Below threshold → Routed to a person -->
+    <path d="M492 135 H520 V195 H560" class="hil-flow" marker-end="url(#hil-arrow)" />
+    <text x="530" y="230" class="hil-small">Below threshold</text>
+    <rect x="560" y="170" width="150" height="50" rx="4" class="hil-human" />
+    <text x="635" y="200" text-anchor="middle" class="hil-label">Routed to a person</text>
+
+    <!-- Action -->
+    <path d="M710 75 H750 V135 H790" class="hil-flow" marker-end="url(#hil-arrow)" />
+    <path d="M710 195 H750 V135" class="hil-flow" />
+    <rect x="790" y="110" width="130" height="50" rx="4" class="hil-box" />
+    <text x="855" y="140" text-anchor="middle" class="hil-label">Action</text>
+
+    <!-- every node feeds the audit log -->
+    <line x1="90"  y1="160" x2="90"  y2="268" class="hil-drop" />
+    <line x1="255" y1="160" x2="255" y2="268" class="hil-drop" />
+    <line x1="430" y1="182" x2="430" y2="268" class="hil-drop" />
+    <line x1="635" y1="220" x2="635" y2="268" class="hil-drop" />
+    <line x1="855" y1="160" x2="855" y2="268" class="hil-drop" />
+    <rect x="30" y="268" width="890" height="40" rx="4" class="hil-log" />
+    <text x="475" y="293" text-anchor="middle" class="hil-logtx">Audit log: who, what, when, which model, which documents</text>
+  </svg>
+</figure>

@@ -140,10 +140,40 @@ for real, attributable results; until then, ship it inside B5 as the mock.
 
 ## C. Supporting photographs
 
-### C1. Homepage hero (replaces or sits beside the grid-paper hero)
+### C1. Homepage hero (sits beside the grid-paper hero)
 A quiet corner office in Southern California, walnut desk, single legal pad with
 a hand-drawn ranked list of five items (unreadable), fountain pen, closed laptop,
-ink-navy wall, sheer curtain moving in coastal air. + style suffix. 16:9.
+ink-navy wall, sheer curtain moving in coastal air. + style suffix.
+
+**Format: portrait 4:5** (the hero is a two-column layout; the photo fills the
+right five columns and is cropped to 4:5 with `object-cover`, so compose with the
+legal pad and pen in the lower two-thirds and leave quiet wall above). Generate at
+1024×1280 or larger, export as JPEG, save to `marketing/src/assets/home/hero.jpg`.
+The page picks it up on the next build; until the file exists the hero stays
+text-only. Also keep a 16:9 crop for LinkedIn and the OG image.
+
+Full prompt to paste:
+
+> Editorial photograph, portrait orientation 4:5. A quiet corner office in Southern
+> California: a walnut desk in the lower two-thirds of the frame holding a single
+> yellow legal pad with a hand-written, unreadable ranked list of five short items,
+> a black fountain pen resting across it, and a closed laptop pushed to one side.
+> Behind the desk an ink-navy wall (#141B2D) and a sheer white curtain lifted slightly
+> by coastal air; morning light from the left. Natural Southern California light,
+> muted colour grade toward warm off-white (#F4F1EA) with a hint of brass; navy
+> shadows. Calm, senior, trustworthy. No people, no faces, no screens showing UI,
+> no visible brands or logos, no readable text. Shallow depth of field, soft shadows,
+> generous negative space in the upper third. Avoid: robots, brains, circuits, neon,
+> blue tech glows, sparkles, stock-photo handshakes.
+
+Alternative C1b (same slot, for an A/B test):
+
+> Editorial photograph, portrait orientation 4:5. A signed one-page agreement lying
+> on a walnut conference table in a Southern California office, a fountain pen set
+> down beside it, a closed leather folio, morning light through tinted glass with
+> the faint outline of a city beyond. Warm off-white and ink-navy palette with a hint
+> of brass; no readable text on the page, no people, no brands, no screens. Calm,
+> senior, trustworthy. Shallow depth of field, generous negative space above.
 
 ### C2. About page, "Seventeen years in regulated rooms"
 An empty boardroom in a financial institution, long walnut table, cream leather
@@ -165,16 +195,17 @@ text overlay. 1200×630. Build as SVG; the icon can come from an image model as 
 
 ## Placement summary
 
-| Page / section | Asset |
-|---|---|
-| Home hero | C1 |
-| Home "Not strategy decks" | B4 |
-| Home "Three ways to engage" | B1 above, B2 within |
-| Home "Who we serve" | A1–A5 photo + strip |
-| Home "Why Tenorworth" (dark) | B3 |
-| Services hero | B2 |
-| Services Roadmap block | B5 |
-| Services "What we build" | B4 |
-| About | C2, B6 |
-| Contact | C3, B6 |
-| Social | C4 ×5 |
+| Page / section | Asset | Status |
+|---|---|---|
+| Home hero | C1b | Built: `src/assets/home/hero.jpg` (GPT Image, 2026-09-08) |
+| Home "Not strategy decks" | B4 | Built: `components/diagrams/HumanInLoop.astro` |
+| Home "Three ways to engage" | B2 within (B1 dropped: illustrative hour counts read as invented results) | Built: `components/diagrams/EngagementArc.astro` |
+| Home "Who we serve" | A1–A5 photo + strip | Built, reuses the Insights hero photos |
+| Home "Why Tenorworth" (dark) | B3 | Built: `components/diagrams/GovernanceTimeline.astro` |
+| Home footer CTA | Principal photo (`src/assets/arka-bala.jpg`) | Built: `CTA principal` prop |
+| Services hero | B2 | Component exists, not placed |
+| Services Roadmap block | B5 | Not built |
+| Services "What we build" | B4 | Component exists, not placed |
+| About | C2, B6 | Not built |
+| Contact | C3, B6 | Not built |
+| Social | C4 ×5 | Not built |

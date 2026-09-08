@@ -1,0 +1,33 @@
+---
+// B2 in brand/image-prompts.md. The logo mark turned into a diagram: flat
+// through the Roadmap, one measured rise through the Pilot, a steady higher
+// plateau on the retainer. Same stroke weight family as Mark.astro.
+export interface Props { class?: string }
+const { class: cls = '' } = Astro.props;
+const segments = [
+  { x: 40,  w: 290, label: 'Roadmap · 2 weeks',              hold: 'A ranked plan' },
+  { x: 330, w: 290, label: 'Pilot · 4–6 weeks',              hold: 'A working system, measured' },
+  { x: 620, w: 300, label: 'Fractional Architect · monthly', hold: 'A program that compounds' },
+];
+---
+<figure class={`overflow-x-auto ${cls}`}>
+  <svg viewBox="0 0 960 230" class="block h-auto w-full min-w-[640px]" role="img" aria-labelledby="arc-title">
+    <title id="arc-title">The engagement arc: a two-week Roadmap, a four-to-six-week Pilot, then a monthly Fractional Architect retainer</title>
+    <style>
+      .arc-eyebrow { font: 500 12px var(--font-sans); letter-spacing: 0.14em; text-transform: uppercase; fill: var(--color-brass-deep); }
+      .arc-hold    { font: 500 18px var(--font-display); fill: var(--color-ink); }
+      .arc-line    { fill: none; stroke: var(--color-ink); stroke-width: 4; stroke-linecap: round; }
+      .arc-divider { stroke: var(--color-cream-line); stroke-width: 1; }
+    </style>
+    {segments.map((s, i) => (
+      <g>
+        {i > 0 && <line x1={s.x} y1="20" x2={s.x} y2="200" class="arc-divider" />}
+        <text x={s.x + s.w / 2} y="36" text-anchor="middle" class="arc-eyebrow">{s.label}</text>
+        <text x={s.x + s.w / 2} y="200" text-anchor="middle" class="arc-hold">{s.hold}</text>
+      </g>
+    ))}
+    <!-- steady, one measured rise, steady higher -->
+    <path class="arc-line" d="M40 140 H330 C440 140 500 78 620 78 H920" />
+    <circle cx="620" cy="78" r="8" fill="var(--color-brass)" />
+  </svg>
+</figure>
