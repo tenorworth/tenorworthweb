@@ -1,0 +1,197 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from './BaseLayout.astro';
+import CTA from '../components/CTA.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE, AUTHOR } from '../config/site';
+import { INDUSTRIES } from '../config/industries';
+import { formatDate, readingTime } from '../lib/posts';
+
+export interface Props {
+  post: CollectionEntry<'blog'>;
+  related: CollectionEntry<'blog'>[];
+  bodyText: string;
+}
+
+const { post, related, bodyText } = Astro.props;
+const d = post.data;
+const industry = INDUSTRIES[d.industry];
+const url = `${SITE.url}/insights/${post.id}`;
+const hubUrl = `/insights/industry/${industry.id}`;
+
+// Social card: the hero cropped to 1200×630 as JPEG. Crawlers do not read SVG
+// or WebP reliably, so this is the one place the site ships a JPEG.
+const og = await getImage({ src: d.heroImage, width: 1200, height: 630, format: 'jpg', quality: 82 });
+const heroFull = await getImage({ src: d.heroImage, width: 1600, format: 'webp' });
+
+const minutes = readingTime(bodyText);
+const published = d.publishDate.toISOString();
+const modified = (d.updatedDate ?? d.publishDate).toISOString();
+
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  '@id': `${url}#article`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+  headline: d.title,
+  description: d.description,
+  abstract: d.summary,
+  image: [new URL(heroFull.src, SITE.url).toString()],
+  datePublished: published,
+  dateModified: modified,
+  inLanguage: 'en-US',
+  wordCount: bodyText.split(/\s+/).filter(Boolean).length,
+  keywords: d.keywords.join(', '),
+  articleSection: industry.name,
+  about: { '@type': 'Thing', name: industry.name },
+  author: {
+    '@type': 'Person',
+    name: AUTHOR.name,
+    jobTitle: AUTHOR.title,
+    url: AUTHOR.url,
+    sameAs: AUTHOR.sameAs,
+    worksFor: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: SITE.name,
+    url: SITE.url,
+    logo: { '@type': 'ImageObject', url: `${SITE.url}/icon-512.png` },
+  },
+  spatialCoverage: { '@type': 'Place', name: `${d.region}, California` },
+  citation: d.sources.map((s) => ({ '@type': 'CreativeWork', name: s.title, url: s.url })),
+};
+
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: 'Insights', item: `${SITE.url}/insights` },
+    { '@type': 'ListItem', position: 3, name: industry.name, item: `${SITE.url}${hubUrl}` },
+    { '@type': 'ListItem', position: 4, name: d.title, item: url },
+  ],
+};
+
+const faq = d.faq.length
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: d.faq.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    }
+  : null;
+---
+<BaseLayout title={d.title} description={d.description} ogImage={og.src} ogType="article">
+  <Fragment slot="head">
+    <meta property="article:published_time" content={published} />
+    <meta property="article:modified_time" content={modified} />
+    <meta property="article:author" content={AUTHOR.name} />
+    <meta property="article:section" content={industry.name} />
+    {d.keywords.map((k) => <meta property="article:tag" content={k} />)}
+    <meta name="author" content={AUTHOR.name} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(article)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
+    {faq && <script is:inline type="application/ld+json" set:html={JSON.stringify(faq)} />}
+  </Fragment>
+
+  <article>
+    <header class="container-wide pt-16 sm:pt-24">
+      <nav aria-label="Breadcrumb" class="text-xs uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
+        <ol class="flex flex-wrap gap-x-3 gap-y-1">
+          <li><a href="/insights" class="transition hover:text-brass-deep">Insights</a></li>
+          <li aria-hidden="true" class="text-brass">·</li>
+          <li><a href={hubUrl} class="transition hover:text-brass-deep">{industry.name}</a></li>
+        </ol>
+      </nav>
+      <h1 class="mt-6 max-w-4xl text-4xl leading-[1.08] text-balance sm:text-5xl lg:text-6xl">{d.title}</h1>
+      <p class="mt-8 max-w-3xl text-lg leading-relaxed text-ink-muted text-pretty sm:text-xl">{d.summary}</p>
+      <dl class="mt-8 flex flex-wrap gap-x-8 gap-y-2 text-sm text-ink-muted">
+        <div class="flex gap-2"><dt class="sr-only">Author</dt><dd><a href="/about" rel="author" class="link-quiet text-ink">{AUTHOR.name}</a>, {AUTHOR.title}</dd></div>
+        <div class="flex gap-2"><dt class="sr-only">Published</dt><dd><time datetime={published}>{formatDate(d.publishDate)}</time></dd></div>
+        {d.updatedDate && <div class="flex gap-2"><dt>Updated</dt><dd><time datetime={modified}>{formatDate(d.updatedDate)}</time></dd></div>}
+        <div class="flex gap-2"><dt class="sr-only">Reading time</dt><dd>{minutes} min read</dd></div>
+        <div class="flex gap-2"><dt class="sr-only">Region</dt><dd>{d.region}</dd></div>
+      </dl>
+    </header>
+
+    <figure class="container-wide mt-12">
+      <Image
+        src={d.heroImage}
+        alt={d.heroAlt}
+        widths={[640, 960, 1280, 1600]}
+        sizes="(min-width: 1152px) 1088px, calc(100vw - 3rem)"
+        format="webp"
+        quality={80}
+        loading="eager"
+        fetchpriority="high"
+        class="aspect-[16/9] w-full rounded-lg object-cover"
+      />
+      {d.heroCaption && <figcaption class="mt-3 text-sm text-ink-muted">{d.heroCaption}</figcaption>}
+    </figure>
+
+    <div class="container-prose prose-tenor mt-14">
+      <slot />
+    </div>
+
+    {d.faq.length > 0 && (
+      <section class="container-prose mt-16 border-t border-cream-line pt-12" aria-labelledby="faq-heading">
+        <p class="eyebrow">Questions we hear</p>
+        <h2 id="faq-heading" class="mt-3 text-3xl">Frequently asked</h2>
+        <dl class="mt-8 divide-y divide-cream-line">
+          {d.faq.map((f) => (
+            <div class="py-6">
+              <dt class="font-display text-xl text-ink">{f.q}</dt>
+              <dd class="mt-3 leading-relaxed text-ink-muted text-pretty">{f.a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )}
+
+    {d.sources.length > 0 && (
+      <section class="container-prose mt-16 border-t border-cream-line pt-12" aria-labelledby="sources-heading">
+        <p class="eyebrow">Sources</p>
+        <h2 id="sources-heading" class="mt-3 text-2xl">What this article cites</h2>
+        <ol class="mt-6 space-y-3 text-sm leading-relaxed">
+          {d.sources.map((s, i) => (
+            <li class="flex gap-4">
+              <span class="w-5 shrink-0 text-brass-deep">{i + 1}.</span>
+              <a href={s.url} rel="noopener nofollow" target="_blank" class="link-quiet text-ink-muted">{s.title}</a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    <aside class="container-prose mt-16 border-t border-cream-line pt-12">
+      <div class="grid gap-6 sm:grid-cols-12">
+        <div class="sm:col-span-4"><p class="eyebrow">In practice</p><h2 class="mt-3 text-2xl">{industry.name}</h2></div>
+        <div class="space-y-4 text-ink-muted sm:col-span-8">
+          <p><span class="font-medium text-ink">What we deploy.</span> {industry.deployed}</p>
+          <p><span class="font-medium text-ink">What we measure.</span> {industry.measure}</p>
+          <p><a href={industry.service} class="link-quiet text-ink">See the engagement that fits</a> or <a href={hubUrl} class="link-quiet text-ink">read more on {industry.lower}</a>.</p>
+        </div>
+      </div>
+    </aside>
+  </article>
+
+  {related.length > 0 && (
+    <section class="container-wide mt-24 border-t border-cream-line pt-16">
+      <p class="eyebrow">More insights</p>
+      <div class="mt-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        {related.map((p) => <PostCard post={p} />)}
+      </div>
+    </section>
+  )}
+
+  <CTA
+    source={`insights_${industry.id}`}
+    headline="Bring us the workflow behind this article."
+    body="Thirty minutes. We will tell you whether AI belongs in it, what the compliance question really is, and what a fixed-scope pilot would cost."
+  />
+</BaseLayout>

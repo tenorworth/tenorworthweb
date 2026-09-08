@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CTA from '../components/CTA.astro';
+import PostCard from '../components/PostCard.astro';
+import { SITE } from '../config/site';
+import { INDUSTRY_LIST } from '../config/industries';
+import { getPosts } from '../lib/posts';
+
+const posts = await getPosts();
+const [lead, ...rest] = posts;
+
+const collection = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `${SITE.name} Insights`,
+  url: `${SITE.url}/insights`,
+  description: 'Plain-spoken writing on deploying AI inside regulated and operations-heavy businesses in Southern California.',
+  isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.url },
+  hasPart: posts.map((p) => ({ '@type': 'BlogPosting', headline: p.data.title, url: `${SITE.url}/insights/${p.id}` })),
+};
+---
+<BaseLayout
+  title="Insights"
+  description="Plain-spoken writing on deploying AI inside regulated and operations-heavy businesses in Southern California: healthcare, credit unions, law firms, life sciences, hospitality."
+>
+  <Fragment slot="head"><script is:inline type="application/ld+json" set:html={JSON.stringify(collection)} /></Fragment>
+
+  <section class="container-wide py-20 sm:py-28">
+    <p class="eyebrow">Insights</p>
+    <h1 class="mt-6 max-w-3xl text-5xl leading-[1.05] text-balance sm:text-6xl">What working AI looks like, one sector at a time.</h1>
+    <p class="mt-8 max-w-2xl text-lg leading-relaxed text-ink-muted text-pretty">
+      Written for the operator, the compliance officer, and the examiner in the room. Each piece names the
+      workflow, the rule that governs it, and the measure that tells you whether it worked. No invented results.
+    </p>
+  </section>
+
+  <nav class="container-wide border-y border-cream-line py-5" aria-label="Sectors">
+    <ul class="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+      {INDUSTRY_LIST.map((i) => (
+        <li><a href={`/insights/industry/${i.id}`} class="text-ink-muted transition hover:text-brass-deep">{i.name}</a></li>
+      ))}
+      <li class="ml-auto"><a href="/rss.xml" class="text-ink-muted transition hover:text-brass-deep">RSS</a></li>
+    </ul>
+  </nav>
+
+  {lead && (
+    <section class="container-wide mt-16">
+      <div class="grid gap-8 lg:grid-cols-12 lg:items-center">
+        <div class="lg:col-span-7"><PostCard post={lead} eager /></div>
+      </div>
+    </section>
+  )}
+
+  {rest.length > 0 && (
+    <section class="container-wide mt-20">
+      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        {rest.map((p) => <PostCard post={p} />)}
+      </div>
+    </section>
+  )}
+
+  <CTA source="insights" />
+</BaseLayout>

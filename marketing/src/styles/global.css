@@ -76,3 +76,33 @@
     background-size: 32px 32px;
   }
 }
+
+/* ── Long-form article body (Insights) ──────────────────────────────────
+   Markdown output only. Headings in Fraunces, body in Inter, brass for the
+   few ornaments. No typography plugin; this is the whole spec.             */
+@layer components {
+  .prose-tenor { @apply text-[1.0625rem] leading-[1.75] text-ink; }
+  .prose-tenor > * + * { @apply mt-6; }
+  .prose-tenor h2 { @apply mt-14 text-3xl leading-tight text-balance; }
+  .prose-tenor h3 { @apply mt-10 text-2xl leading-snug; }
+  .prose-tenor h2 + p, .prose-tenor h3 + p { @apply mt-4; }
+  .prose-tenor p { @apply text-pretty; }
+  .prose-tenor a { @apply underline decoration-brass/60 underline-offset-4 transition hover:decoration-brass; }
+  .prose-tenor strong { @apply font-semibold text-ink; }
+  .prose-tenor ul, .prose-tenor ol { @apply space-y-3 pl-1; }
+  .prose-tenor ul > li { @apply relative pl-7; }
+  .prose-tenor ul > li::before { content: ""; @apply absolute left-0 top-[0.85em] h-px w-4 bg-brass; }
+  .prose-tenor ol { counter-reset: item; }
+  .prose-tenor ol > li { @apply relative pl-8; counter-increment: item; }
+  .prose-tenor ol > li::before { content: counter(item) "."; @apply absolute left-0 font-display text-brass-deep; }
+  .prose-tenor blockquote { @apply border-l-2 border-brass pl-6 font-display text-xl leading-relaxed text-ink-muted; }
+  .prose-tenor hr { @apply my-12 h-px w-12 border-0 bg-brass; }
+  .prose-tenor table { @apply w-full border-collapse text-[0.95rem]; }
+  .prose-tenor thead th { @apply border-b border-ink/30 pb-3 text-left text-xs font-medium uppercase tracking-[var(--tracking-eyebrow)] text-brass-deep; }
+  .prose-tenor tbody td { @apply border-b border-cream-line py-3 pr-4 align-top; }
+  .prose-tenor .table-scroll { @apply -mx-6 overflow-x-auto px-6 sm:mx-0 sm:px-0; }
+  .prose-tenor code { @apply rounded bg-cream-deep px-1.5 py-0.5 text-[0.9em]; }
+  .prose-tenor .answer { @apply border-l-2 border-brass bg-cream-deep/50 px-6 py-5 text-ink; }
+  .prose-tenor .answer p { @apply mt-0; }
+  .prose-tenor .note { @apply text-sm text-ink-muted; }
+}

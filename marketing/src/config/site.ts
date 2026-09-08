@@ -20,9 +20,21 @@ export function contactHref(): string {
 
 export const NAV = [
   { href: '/services', label: 'Services' },
+  { href: '/insights', label: 'Insights' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ] as const;
 
-// Route list for the sitemap. Keep in sync when pages are added.
-export const ROUTES = ['', 'services', 'about', 'contact', 'privacy'] as const;
+// Static route list for the sitemap. Insights posts and hub pages are added
+// from the content collection in sitemap.xml.ts. Keep in sync when pages are added.
+export const ROUTES = ['', 'services', 'insights', 'about', 'contact', 'privacy'] as const;
+
+// Author entity for Insights posts. One person, one profile, referenced from
+// every article's structured data so search and answer engines can tie the
+// writing to a real practitioner.
+export const AUTHOR = {
+  name: 'Arka Bala',
+  title: 'Principal AI Architect',
+  url: `${SITE.url}/about`,
+  sameAs: [SITE.linkedin],
+} as const;

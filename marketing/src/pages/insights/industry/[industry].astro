@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import CTA from '../../../components/CTA.astro';
+import PostCard from '../../../components/PostCard.astro';
+import { SITE } from '../../../config/site';
+import { INDUSTRY_LIST, INDUSTRIES, type IndustryId } from '../../../config/industries';
+import { getPosts } from '../../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return INDUSTRY_LIST.map((i) => ({
+    params: { industry: i.id },
+    props: { posts: posts.filter((p) => p.data.industry === i.id) },
+  }));
+}
+
+const { industry: id } = Astro.params as { industry: IndustryId };
+const { posts } = Astro.props;
+const industry = INDUSTRIES[id];
+const others = INDUSTRY_LIST.filter((i) => i.id !== id);
+
+const title = `AI for ${industry.lower} in ${industry.region}`;
+const description = `${industry.problem} What Tenorworth deploys for ${industry.lower} in ${industry.region}, the rules that govern it, and how the return is measured.`;
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: title,
+  url: `${SITE.url}/insights/industry/${id}`,
+  description,
+  about: { '@type': 'Thing', name: industry.name },
+  spatialCoverage: { '@type': 'Place', name: `${industry.region}, California` },
+  isPartOf: { '@type': 'WebSite', name: SITE.name, url: SITE.url },
+  hasPart: posts.map((p) => ({ '@type': 'BlogPosting', headline: p.data.title, url: `${SITE.url}/insights/${p.id}` })),
+};
+const breadcrumbs = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: SITE.name, item: SITE.url },
+    { '@type': 'ListItem', position: 2, name: 'Insights', item: `${SITE.url}/insights` },
+    { '@type': 'ListItem', position: 3, name: industry.name, item: `${SITE.url}/insights/industry/${id}` },
+  ],
+};
+---
+<BaseLayout title={title} description={description}>
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />
+  </Fragment>
+
+  <section class="container-wide py-20 sm:py-28">
+    <nav aria-label="Breadcrumb" class="text-xs uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
+      <a href="/insights" class="transition hover:text-brass-deep">Insights</a>
+      <span aria-hidden="true" class="mx-3 text-brass">·</span>
+      <span>{industry.name}</span>
+    </nav>
+    <h1 class="mt-6 max-w-3xl text-5xl leading-[1.05] text-balance sm:text-6xl">{title}.</h1>
+    <p class="mt-8 max-w-2xl text-lg leading-relaxed text-ink-muted text-pretty">
+      On site within the week in {industry.cities.join(', ')}, and anywhere else in {industry.region}.
+    </p>
+  </section>
+
+  <section class="container-wide grid gap-10 border-y border-cream-line py-14 sm:grid-cols-3">
+    <div><p class="eyebrow">The problem</p><p class="mt-3 leading-relaxed text-ink-muted text-pretty">{industry.problem}</p></div>
+    <div><p class="eyebrow">What we deploy</p><p class="mt-3 leading-relaxed text-ink-muted text-pretty">{industry.deployed}</p></div>
+    <div><p class="eyebrow">What we measure</p><p class="mt-3 leading-relaxed text-ink-muted text-pretty">{industry.measure}</p></div>
+  </section>
+
+  <section class="container-wide mt-20">
+    {posts.length > 0 ? (
+      <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
+        {posts.map((p, i) => <PostCard post={p} eager={i === 0} />)}
+      </div>
+    ) : (
+      <p class="text-ink-muted">Writing for this sector is in progress. <a href="/insights" class="link-quiet text-ink">See all insights</a>.</p>
+    )}
+  </section>
+
+  <section class="container-wide mt-20 border-t border-cream-line pt-10">
+    <p class="eyebrow">Other sectors</p>
+    <ul class="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
+      {others.map((i) => <li><a href={`/insights/industry/${i.id}`} class="text-ink-muted transition hover:text-brass-deep">{i.name}</a></li>)}
+    </ul>
+  </section>
+
+  <CTA source={`insights_hub_${id}`} />
+</BaseLayout>

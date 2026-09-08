@@ -43,6 +43,12 @@ cd frontend  && npm run build                 # tsc + vite build → frontend/di
   them automatically when `PUBLIC_GA_MEASUREMENT_ID` is set.
 - The logo mark is an inline SVG component (`Mark.astro`) using `currentColor` for ink
   and a fixed brass point. Source of truth is `brand/mark-transparent.svg`.
+- **Insights (blog)**: one Markdown file per post in `marketing/src/content/blog/`, schema in
+  `src/content.config.ts`, sectors in `src/config/industries.ts`. Routes: `/insights`,
+  `/insights/<slug>`, `/insights/industry/<sector>`. Sitemap, RSS and `llms.txt` read the
+  collection, so a new post needs no route changes. Hero images live in
+  `src/assets/blog/` (16:9 photographs, no text, no faces). Every post carries `summary`
+  (answer-first), `faq`, and `sources`; no invented client results.
 
 ## Deployment
 
