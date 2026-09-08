@@ -77,40 +77,36 @@ export async function freeBusy(timeMin: Date, timeMax: Date): Promise<Interval[]
 export interface CreatedEvent {
   id: string;
   htmlLink: string | null;
-  meetUrl: string | null;
 }
 
+/**
+ * Puts the call on the principal's own calendar. No attendees and no
+ * conference data on purpose: Google must not email anyone from the Gmail
+ * address. The visitor's invitation goes out from hi@ (see mail.ts).
+ */
 export async function createEvent(input: {
   start: Date;
   end: Date;
   summary: string;
   description: string;
-  attendee: { email: string; name: string };
+  location: string;
 }): Promise<CreatedEvent> {
-  const path = `/calendars/${encodeURIComponent(calendarId())}/events?conferenceDataVersion=1&sendUpdates=all`;
-  const data = await calendarFetch<{ id: string; htmlLink?: string; hangoutLink?: string }>(path, {
+  const path = `/calendars/${encodeURIComponent(calendarId())}/events?sendUpdates=none`;
+  const data = await calendarFetch<{ id: string; htmlLink?: string }>(path, {
     method: 'POST',
     body: JSON.stringify({
       summary: input.summary,
       description: input.description,
+      location: input.location,
       start: { dateTime: input.start.toISOString(), timeZone: 'UTC' },
       end: { dateTime: input.end.toISOString(), timeZone: 'UTC' },
-      attendees: [{ email: input.attendee.email, displayName: input.attendee.name }],
-      conferenceData: {
-        createRequest: {
-          requestId: crypto.randomUUID(),
-          conferenceSolutionKey: { type: 'hangoutsMeet' },
-        },
-      },
       reminders: { useDefault: true },
-      guestsCanModify: false,
-      guestsCanInviteOthers: false,
     }),
   });
-  return { id: data.id, htmlLink: data.htmlLink ?? null, meetUrl: data.hangoutLink ?? null };
+  return { id: data.id, htmlLink: data.htmlLink ?? null };
 }
 
 export async function deleteEvent(eventId: string): Promise<void> {
-  const path = `/calendars/${encodeURIComponent(calendarId())}/events/${encodeURIComponent(eventId)}?sendUpdates=all`;
+  const path = `/calendars/${encodeURIComponent(calendarId())}/events/${encodeURIComponent(eventId)}?sendUpdates=none`;
   await calendarFetch<void>(path, { method: 'DELETE' });
 }

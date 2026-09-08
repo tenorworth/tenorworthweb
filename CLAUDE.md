@@ -84,8 +84,10 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
 - Contact address is deliberately `hello@tenorworth.com` (an alias of the real `hi@` mailbox,
   kept off the site to limit bot mail). Do not switch the site to `hi@`.
 - "Book a call" → `/book` (marketing/src/pages/book.astro): form → `lead` function →
-  slot picker from Google free/busy → `book` function creates the event on
-  arkajit.bala@gmail.com's calendar with a Meet link. Google secrets live in
+  slot picker from Google free/busy → `book` function puts the event on
+  arkajit.bala@gmail.com's calendar (no Google emails), then emails the visitor an
+  iCalendar invitation from hi@tenorworth.com over Hostinger SMTP with the Zoom personal
+  room link, and a heads-up to `BOOKING_NOTIFY_EMAIL`. Google, SMTP and Zoom values live in
   `supabase secrets`, never in the repo. Setup runbook: `supabase/README.md`.
 - In-person contact card: `/card` (marketing/src/pages/card.astro, noindex, not in `ROUTES`)
   with "Save contact" → `/arka-bala.vcf` (built from `AUTHOR`/`CARD` in site.ts; nginx serves

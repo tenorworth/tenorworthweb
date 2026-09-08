@@ -1,9 +1,11 @@
 // POST /functions/v1/book — step two of "Book a call". Confirms the slot is
-// still open, creates the Google Calendar event (attendee + Meet link, invite
-// sent by Google), and records the booking against the lead.
+// still open, puts the call on the principal's Google Calendar (no Google
+// emails), records the booking, then sends the visitor a branded invitation
+// from hi@tenorworth.com with the Zoom link, and the principal a heads-up.
 import { json, preflight, readJson, str } from '../_shared/cors.ts';
 import { serviceClient } from '../_shared/db.ts';
 import { createEvent, deleteEvent, freeBusy } from '../_shared/google.ts';
+import { buildInvite, mailConfig, sendInvite, sendNotification, zoomUrl } from '../_shared/mail.ts';
 import { SLOT_MINUTES, bookingConfig, generateSlots } from '../_shared/slots.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -52,57 +54,93 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (clash) return json(req, { error: TAKEN }, 409);
 
+  const practiceZone = bookingConfig().timeZone;
+  const visitorZone = timezone || lead.timezone || practiceZone;
+  const zoom = zoomUrl();
+  const company = lead.company ? ` (${lead.company})` : '';
+  const summary = `Tenorworth intro call: ${lead.name}${company}`;
+
+  // 1. Calendar event on the principal's calendar.
   let event;
   try {
     const busy = await freeBusy(start, end);
     if (busy.length) return json(req, { error: TAKEN }, 409);
 
-    const company = lead.company ? ` (${lead.company})` : '';
     event = await createEvent({
       start,
       end,
-      summary: `Tenorworth intro call: ${lead.name}${company}`,
+      summary,
+      location: zoom,
       description: [
         'Thirty-minute intro call booked via tenorworth.com.',
+        '',
+        `Zoom: ${zoom}`,
         '',
         `Name: ${lead.name}`,
         lead.company ? `Company: ${lead.company}` : null,
         `Email: ${lead.email}`,
         lead.message ? `\nWhat they want to discuss:\n${lead.message}` : null,
-        timezone || lead.timezone ? `\nTheir time zone: ${timezone || lead.timezone}` : null,
+        `\nTheir time zone: ${visitorZone}`,
       ].filter((line) => line !== null).join('\n'),
-      attendee: { email: lead.email, name: lead.name },
     });
   } catch (err) {
     console.error('calendar failed', err);
     return json(req, { error: 'The calendar is not reachable right now. Please email us instead.' }, 502);
   }
 
-  const { error: insertErr } = await db.from('bookings').insert({
-    lead_id: lead.id,
-    start_at: start.toISOString(),
-    end_at: end.toISOString(),
-    timezone: timezone || null,
-    google_event_id: event.id,
-    meet_url: event.meetUrl,
-    html_link: event.htmlLink,
-  });
+  // 2. Record it (the partial unique index is the backstop for two visitors racing).
+  const { data: booking, error: insertErr } = await db
+    .from('bookings')
+    .insert({
+      lead_id: lead.id,
+      start_at: start.toISOString(),
+      end_at: end.toISOString(),
+      timezone: timezone || null,
+      google_event_id: event.id,
+      meet_url: zoom,
+      html_link: event.htmlLink,
+    })
+    .select('id')
+    .single();
 
-  if (insertErr) {
+  if (insertErr || !booking) {
     console.error('booking insert failed', insertErr);
-    // Lost the race for this slot (partial unique index). Undo the event.
-    if (insertErr.code === '23505') {
-      await deleteEvent(event.id).catch((e) => console.error('event rollback failed', e));
-      return json(req, { error: TAKEN }, 409);
-    }
-    return json(req, { error: 'The invite was sent but we could not record it. We will follow up by email.' }, 500);
+    await deleteEvent(event.id).catch((e) => console.error('event rollback failed', e));
+    if (insertErr?.code === '23505') return json(req, { error: TAKEN }, 409);
+    return json(req, { error: 'Something went wrong. Please try again.' }, 500);
   }
+
+  // 3. The visitor's invitation, from hi@. If this fails they have nothing, so undo.
+  const details = {
+    lead: { name: lead.name, email: lead.email, company: lead.company, message: lead.message },
+    start, end, minutes: SLOT_MINUTES, visitorZone, practiceZone, zoom, calendarLink: event.htmlLink,
+  };
+  try {
+    const { fromName, fromEmail } = mailConfig();
+    const ics = buildInvite({
+      uid: `${booking.id}@tenorworth.com`,
+      start, end, summary,
+      description: `Thirty-minute intro call with Arka Bala, Tenorworth.\nZoom: ${zoom}\n\nNeed to move it? Reply to the invitation email.`,
+      location: zoom,
+      organizer: { name: fromName, email: fromEmail },
+      attendee: { name: lead.name, email: lead.email },
+    });
+    await sendInvite(details, ics);
+  } catch (err) {
+    console.error('invite email failed', err);
+    await db.from('bookings').delete().eq('id', booking.id);
+    await deleteEvent(event.id).catch((e) => console.error('event rollback failed', e));
+    return json(req, { error: 'We could not send the invitation just now. Please try again, or email us.' }, 502);
+  }
+
+  // 4. Heads-up to the principal. Best effort: the event is already on the calendar.
+  await sendNotification(details).catch((e) => console.error('notification email failed', e));
 
   return json(req, {
     start: start.toISOString(),
     end: end.toISOString(),
-    meetUrl: event.meetUrl,
+    meetUrl: zoom,
     htmlLink: event.htmlLink,
-    timeZone: bookingConfig().timeZone,
+    timeZone: practiceZone,
   }, 201);
 });
