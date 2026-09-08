@@ -10,6 +10,9 @@ export const SITE = {
   // /book flow, backed by Supabase Edge Functions + Google Calendar) and fall
   // back to email when it is empty.
   email: 'hello@tenorworth.com',
+  // Google Voice line. E.164 for tel: links and the vCard; display form for copy.
+  phone: '+16507017881',
+  phoneDisplay: '+1 (650) 701-7881',
   bookingUrl: '/book',
   // Supabase project URL (no credentials; the Edge Functions are public
   // endpoints with their own validation). Override with PUBLIC_SUPABASE_URL.
@@ -45,12 +48,13 @@ export const ROUTES = ['', 'services', 'insights', 'about', 'contact', 'book', '
 
 // In-person contact card (/card) and the vCard it offers (/arka-bala.vcf).
 // The QR code and NFC tag both point at /card; `?s=qr` / `?s=nfc` tell the
-// lead row how the person arrived. Phone is E.164 (+1619...) or empty, in
-// which case the vCard simply omits it.
+// lead row how the person arrived. Phone comes from SITE; leave it empty there
+// and the card page and vCard simply omit it.
 export const CARD = {
   path: '/card',
   vcardPath: '/arka-bala.vcf',
-  phone: '',
+  phone: SITE.phone,
+  phoneDisplay: SITE.phoneDisplay,
   city: 'San Diego',
   region: 'CA',
   country: 'USA',

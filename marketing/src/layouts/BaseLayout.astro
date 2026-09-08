@@ -34,6 +34,7 @@ const orgSchema = {
   legalName: SITE.legalEntity,
   url: SITE.url,
   email: SITE.email,
+  ...(SITE.phone ? { telephone: SITE.phone } : {}),
   description: SITE.description,
   areaServed: SITE.region,
   logo: `${SITE.url}/icon-512.png`,

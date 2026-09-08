@@ -91,7 +91,8 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   with "Save contact" → `/arka-bala.vcf` (built from `AUTHOR`/`CARD` in site.ts; nginx serves
   `.vcf` as text/vcard) and a "Send me the notes" form → `lead` function with source `card_qr` /
   `card_nfc` / `card`. QR code for `https://tenorworth.com/card?s=qr` lives in `brand/v2/qr-card.{svg,png}`;
-  regenerate with `npx qrcode` if the URL changes. Phone number is `CARD.phone` (empty = omitted).
+  regenerate with `npx qrcode` if the URL changes. Phone is `SITE.phone` / `SITE.phoneDisplay` (Google
+  Voice), shown on /card, the vCard, /contact, the footer and the org schema; empty = omitted everywhere.
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
   never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
   (local + VPS) carries the URL and the publishable key. Secret keys stay in the

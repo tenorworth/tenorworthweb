@@ -16,6 +16,11 @@ import { SITE, contactHref } from '../config/site';
         <a href={contactHref('contact_page')} class="btn-primary" data-event="cta_click" data-source="contact_page">Book a call</a>
         <a href={`mailto:${SITE.email}`} class="btn-secondary">Email {SITE.email}</a>
       </div>
+      {SITE.phone && (
+        <p class="mt-6 text-ink-muted">
+          Or call or text <a class="link-quiet text-ink" href={`tel:${SITE.phone}`}>{SITE.phoneDisplay}</a>.
+        </p>
+      )}
     </div>
     <aside class="lg:col-span-5 lg:pl-12">
       <div class="rounded-lg border border-cream-line bg-cream-deep/50 p-8">
