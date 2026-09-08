@@ -15,7 +15,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
         >{item.label}</a>
       ))}
     </nav>
-    <a href={contactHref()} class="btn-primary shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:px-4 sm:text-sm" data-event="cta_click" data-source="header">
+    <a href={contactHref('header')} class="btn-primary shrink-0 whitespace-nowrap px-3 py-2 text-xs sm:px-4 sm:text-sm" data-event="cta_click" data-source="header">
       Book a call
     </a>
   </div>

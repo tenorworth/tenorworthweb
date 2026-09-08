@@ -13,6 +13,8 @@ or anything from the SupremoAgent repo's secrets.
 marketing/   Astro 5 + Tailwind 4, static → tenorworth.com          (port 4322)
 frontend/    React 18 + Vite + TS + TanStack Query + Supabase → app.tenorworth.com (port 3001)
 backend/     NOT scaffolded. Runtime undecided (FastAPI like SupremoAgent, or Node). Listens on :8002.
+supabase/    migrations + Edge Functions for "Book a call" (lead capture → Google Calendar). See supabase/README.md
+scripts/     google-oauth-token.mjs — one-time Google refresh-token helper (prints, never writes)
 deploy/      bootstrap-user.sh (once), update.sh (every deploy), nginx/ server blocks
 brand/       source logo assets (v2/: circle avatar, circle-safe app icon, business card) — export from here, never edit
 .github/     deploy.yml — build-check, then SSH to VPS and run deploy/update.sh
@@ -43,12 +45,20 @@ cd frontend  && npm run build                 # tsc + vite build → frontend/di
   them automatically when `PUBLIC_GA_MEASUREMENT_ID` is set.
 - The logo mark is an inline SVG component (`Mark.astro`) using `currentColor` for ink
   and a fixed brass point. Source of truth is `brand/mark-transparent.svg`.
+- **Home page graphics**: the diagrams (engagement arc, human-in-the-loop flow, governance
+  timeline) are inline SVG components in `marketing/src/components/diagrams/`, drawn from the
+  specs in `brand/image-prompts.md` (B2, B4, B3). Brand tokens only, text set in real type, a
+  `<title>` for screen readers, and a `min-w` + `overflow-x-auto` wrapper so they scroll on
+  phones instead of shrinking. Photographs are picked up by `import.meta.glob` with a
+  graceful fallback: `src/assets/home/hero.{jpg,png}` for the hero, `src/assets/arka-bala.jpg`
+  for the principal beside the footer CTA (`<CTA principal />`). "Who we serve" reuses the
+  Insights hero photos and the Problem / Deployed / Measure copy from `industries.ts`.
 - **Insights (blog)**: one Markdown file per post in `marketing/src/content/blog/`, schema in
   `src/content.config.ts`, sectors in `src/config/industries.ts`. Routes: `/insights`,
   `/insights/<slug>`, `/insights/industry/<sector>`. Sitemap, RSS and `llms.txt` read the
   collection, so a new post needs no route changes. Hero images live in
-  `src/assets/blog/` (16:9 photographs, no text, no faces). Every post carries `summary`
-  (answer-first), `faq`, and `sources`; no invented client results.
+  `src/assets/blog/` (16:9, no text, no faces; photo or brand-token SVG rendered to PNG).
+  Every post carries `summary` (answer-first), `faq`, and `sources`; no invented client results.
 
 ## Deployment
 
@@ -73,7 +83,15 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
 
 - Contact address is deliberately `hello@tenorworth.com` (an alias of the real `hi@` mailbox,
   kept off the site to limit bot mail). Do not switch the site to `hi@`.
-- `SITE.bookingUrl` is empty; set a Calendly/Cal.com link and every "Book a call" CTA switches over.
+- "Book a call" → `/book` (marketing/src/pages/book.astro): form → `lead` function →
+  slot picker from Google free/busy → `book` function creates the event on
+  arkajit.bala@gmail.com's calendar with a Meet link. Google secrets live in
+  `supabase secrets`, never in the repo. Setup runbook: `supabase/README.md`.
+- In-person contact card: `/card` (marketing/src/pages/card.astro, noindex, not in `ROUTES`)
+  with "Save contact" → `/arka-bala.vcf` (built from `AUTHOR`/`CARD` in site.ts; nginx serves
+  `.vcf` as text/vcard) and a "Send me the notes" form → `lead` function with source `card_qr` /
+  `card_nfc` / `card`. QR code for `https://tenorworth.com/card?s=qr` lives in `brand/v2/qr-card.{svg,png}`;
+  regenerate with `npx qrcode` if the URL changes. Phone number is `CARD.phone` (empty = omitted).
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
   never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
   (local + VPS) carries the URL and the publishable key. Secret keys stay in the

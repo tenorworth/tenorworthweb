@@ -23,6 +23,14 @@ cd frontend  && npm install && npm run dev     # http://localhost:3001
 `frontend/` reads `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from `frontend/.env`
 (copy `.env.example`). It renders a notice instead of crashing when unset.
 
+## Booking flow
+
+"Book a call" is our own two-step flow at `/book`: capture the lead, then pick a
+30-minute slot from live Google Calendar availability. It runs on Supabase Edge
+Functions plus two tables; the static site calls them directly. Setup (Google
+OAuth client, secrets, `supabase db push`, `functions deploy`) is in
+[supabase/README.md](supabase/README.md).
+
 ## Deploying
 
 The site shares the Ubuntu VPS with supremoagent.com (nginx, certbot) under its own

@@ -1,0 +1,269 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, functionsUrl } from '../config/site';
+
+const fieldClass =
+  'w-full rounded-md border border-cream-line bg-white/60 px-4 py-3 text-ink placeholder:text-ink-muted/60 ' +
+  'transition focus:border-brass focus:outline-none focus:ring-2 focus:ring-brass/40';
+---
+<BaseLayout title="Book a call" description="Book a thirty-minute call with Tenorworth. Pick a time that suits you and a calendar invite with a Meet link follows.">
+  <section id="booking" class="container-wide grid gap-12 py-20 sm:py-28 lg:grid-cols-12" data-functions-url={functionsUrl()} data-email={SITE.email}>
+    <div class="lg:col-span-7">
+      <p class="eyebrow">Book a call</p>
+      <h1 class="mt-6 text-5xl leading-[1.05] text-balance sm:text-6xl">Thirty minutes, on the calendar.</h1>
+      <p class="mt-8 max-w-xl text-lg leading-relaxed text-ink-muted text-pretty">
+        Tell us who you are and pick a time. A calendar invitation with a Google Meet link
+        follows straight away.
+      </p>
+
+      <!-- Step 1: who you are -->
+      <form id="lead-form" class="mt-10 grid max-w-xl gap-5" novalidate>
+        <div class="grid gap-5 sm:grid-cols-2">
+          <label class="grid gap-2 text-sm font-medium">
+            <span>Name</span>
+            <input class={fieldClass} name="name" type="text" autocomplete="name" required maxlength="120" />
+          </label>
+          <label class="grid gap-2 text-sm font-medium">
+            <span>Work email</span>
+            <input class={fieldClass} name="email" type="email" autocomplete="email" required maxlength="254" />
+          </label>
+        </div>
+        <label class="grid gap-2 text-sm font-medium">
+          <span>Company <span class="font-normal text-ink-muted">(optional)</span></span>
+          <input class={fieldClass} name="company" type="text" autocomplete="organization" maxlength="120" />
+        </label>
+        <label class="grid gap-2 text-sm font-medium">
+          <span>What would you like to talk about? <span class="font-normal text-ink-muted">(optional)</span></span>
+          <textarea class={fieldClass} name="message" rows="4" maxlength="2000" placeholder="The workflow that costs the most time, or the compliance question you expect to block it."></textarea>
+        </label>
+        <!-- Honeypot. Hidden from people; bots tend to fill it. -->
+        <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+          <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+        </div>
+        <p id="lead-error" class="text-sm text-brass-deep" role="alert" hidden></p>
+        <div class="flex flex-wrap items-center gap-4">
+          <button type="submit" class="btn-primary" data-event="cta_click" data-source="book_form">Choose a time</button>
+          <span class="text-sm text-ink-muted">No newsletter. We only use this to set up the call.</span>
+        </div>
+      </form>
+
+      <!-- Step 2: pick a slot -->
+      <div id="slots-step" class="mt-10 max-w-xl" hidden>
+        <p class="eyebrow">Step 2 of 2</p>
+        <h2 class="mt-3 text-3xl">Pick a time</h2>
+        <p class="mt-2 text-sm text-ink-muted">Times are shown in <span id="tz-label"></span>. Weekdays, Pacific business hours.</p>
+        <p id="slots-loading" class="mt-6 text-sm text-ink-muted">Checking the calendar…</p>
+        <div id="slots" class="mt-6 space-y-6"></div>
+        <p id="slots-empty" class="mt-6 text-ink-muted" hidden>
+          Nothing open in the next two weeks. Email <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a> and we will find a time.
+        </p>
+        <p id="book-error" class="mt-6 text-sm text-brass-deep" role="alert" hidden></p>
+        <div id="confirm-bar" class="mt-8 flex flex-wrap items-center gap-4" hidden>
+          <button id="confirm-btn" type="button" class="btn-primary">Confirm <span id="confirm-when"></span></button>
+          <button id="clear-btn" type="button" class="text-sm text-ink-muted underline decoration-brass/60 underline-offset-4 hover:decoration-brass">Choose a different time</button>
+        </div>
+      </div>
+
+      <!-- Step 3: confirmed -->
+      <div id="done-step" class="mt-10 max-w-xl" hidden>
+        <p class="eyebrow">Confirmed</p>
+        <h2 class="mt-3 text-3xl text-balance">See you <span id="done-when"></span>.</h2>
+        <p class="mt-4 leading-relaxed text-ink-muted">
+          An invitation is on its way to <span id="done-email" class="text-ink"></span>. The Google Meet link is in the invite.
+          Need to move it? Reply to the invite or email <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+        </p>
+        <a id="done-meet" class="btn-secondary mt-6" href="#" target="_blank" rel="noopener" hidden>Open the Meet link</a>
+      </div>
+
+      <noscript>
+        <p class="mt-8 text-ink-muted">Booking needs JavaScript. Email <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a> instead and we will reply within one business day.</p>
+      </noscript>
+    </div>
+
+    <aside class="lg:col-span-5 lg:pl-12">
+      <div class="rounded-lg border border-cream-line bg-cream-deep/50 p-8">
+        <h2 class="eyebrow">What to expect</h2>
+        <ol class="mt-5 space-y-5 leading-relaxed">
+          <li class="flex gap-4"><span class="font-display text-brass">01</span><span>Thirty minutes on Google Meet, with the person who would do the work.</span></li>
+          <li class="flex gap-4"><span class="font-display text-brass">02</span><span>We talk through the workflow and the constraints around it.</span></li>
+          <li class="flex gap-4"><span class="font-display text-brass">03</span><span>A written recommendation afterwards. Sometimes that recommendation is "not yet."</span></li>
+        </ol>
+        <p class="mt-8 border-t border-cream-line pt-6 text-sm text-ink-muted">
+          Based in {SITE.region}. Prefer email? <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        </p>
+      </div>
+    </aside>
+  </section>
+
+  <script>
+    type Slot = { start: string; end: string };
+
+    const root = document.getElementById('booking') as HTMLElement;
+    const base = root.dataset.functionsUrl as string;
+    const contactEmail = root.dataset.email as string;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const source = new URLSearchParams(location.search).get('source') || 'book_page';
+
+    const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+    const form = $<HTMLFormElement>('lead-form');
+    const leadError = $('lead-error');
+    const slotsStep = $('slots-step');
+    const slotsEl = $('slots');
+    const slotsLoading = $('slots-loading');
+    const slotsEmpty = $('slots-empty');
+    const bookError = $('book-error');
+    const confirmBar = $('confirm-bar');
+    const confirmBtn = $<HTMLButtonElement>('confirm-btn');
+    const confirmWhen = $('confirm-when');
+    const doneStep = $('done-step');
+
+    const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', timeZone: tz });
+    const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', timeZone: tz });
+    const whenFmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: tz });
+    $('tz-label').textContent = tz.replace(/_/g, ' ');
+
+    let leadId: string | null = null;
+    let leadEmail = '';
+    let selected: Slot | null = null;
+
+    const fallback = `Something went wrong. Please try again, or email ${contactEmail}.`;
+    const show = (el: HTMLElement, text?: string) => { if (text !== undefined) el.textContent = text; el.hidden = false; };
+    const hide = (el: HTMLElement) => { el.hidden = true; };
+
+    async function api(path: string, init?: RequestInit) {
+      const res = await fetch(`${base}${path}`, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    // Step 1 → save the lead
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hide(leadError);
+      const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+      const fd = new FormData(form);
+      const payload = {
+        name: fd.get('name'), email: fd.get('email'), company: fd.get('company'),
+        message: fd.get('message'), website: fd.get('website'), source, timezone: tz,
+      };
+      btn.disabled = true;
+      try {
+        const { ok, data } = await api('/lead', { method: 'POST', body: JSON.stringify(payload) });
+        if (!ok) {
+          const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
+          show(leadError, fields || data.error || fallback);
+          return;
+        }
+        leadId = data.id;
+        leadEmail = String(payload.email ?? '').trim().toLowerCase();
+        hide(form);
+        show(slotsStep);
+        loadSlots();
+      } catch {
+        show(leadError, fallback);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Step 2 → render open slots grouped by day (in the visitor's zone)
+    async function loadSlots() {
+      selected = null;
+      hide(confirmBar); hide(bookError); hide(slotsEmpty);
+      slotsEl.replaceChildren();
+      show(slotsLoading);
+      try {
+        const { ok, data } = await api('/availability');
+        hide(slotsLoading);
+        if (!ok) { show(bookError, data.error || fallback); return; }
+        const slots: Slot[] = data.slots ?? [];
+        if (slots.length === 0) { show(slotsEmpty); return; }
+
+        const byDay = new Map<string, Slot[]>();
+        for (const s of slots) {
+          const key = dayFmt.format(new Date(s.start));
+          byDay.set(key, [...(byDay.get(key) ?? []), s]);
+        }
+        for (const [day, list] of byDay) {
+          const group = document.createElement('div');
+          const h = document.createElement('h3');
+          h.className = 'font-sans text-sm font-medium tracking-normal';
+          h.textContent = day;
+          const row = document.createElement('div');
+          row.className = 'mt-3 flex flex-wrap gap-2';
+          for (const s of list) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.start = s.start;
+            b.className = 'slot rounded-md border border-ink/20 px-3 py-2 text-sm transition hover:border-brass hover:text-brass-deep';
+            b.textContent = timeFmt.format(new Date(s.start));
+            b.addEventListener('click', () => select(s, b));
+            row.append(b);
+          }
+          group.append(h, row);
+          slotsEl.append(group);
+        }
+      } catch {
+        hide(slotsLoading);
+        show(bookError, fallback);
+      }
+    }
+
+    function select(slot: Slot, btn: HTMLButtonElement) {
+      selected = slot;
+      for (const el of slotsEl.querySelectorAll<HTMLButtonElement>('button.slot')) {
+        const on = el === btn;
+        el.classList.toggle('bg-ink', on);
+        el.classList.toggle('text-cream', on);
+        el.classList.toggle('border-ink', on);
+        el.setAttribute('aria-pressed', String(on));
+      }
+      confirmWhen.textContent = whenFmt.format(new Date(slot.start));
+      hide(bookError);
+      show(confirmBar);
+      confirmBar.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    $('clear-btn').addEventListener('click', () => {
+      selected = null;
+      hide(confirmBar);
+      for (const el of slotsEl.querySelectorAll<HTMLButtonElement>('button.slot')) {
+        el.classList.remove('bg-ink', 'text-cream', 'border-ink');
+        el.removeAttribute('aria-pressed');
+      }
+    });
+
+    // Confirm → create the calendar event
+    confirmBtn.addEventListener('click', async () => {
+      if (!selected || !leadId) return;
+      confirmBtn.disabled = true;
+      const label = confirmBtn.innerHTML;
+      confirmBtn.textContent = 'Booking…';
+      try {
+        const { ok, status, data } = await api('/book', {
+          method: 'POST',
+          body: JSON.stringify({ leadId, start: selected.start, timezone: tz }),
+        });
+        if (!ok) {
+          if (status === 409) { await loadSlots(); }
+          show(bookError, data.error || fallback);
+          return;
+        }
+        hide(slotsStep);
+        $('done-when').textContent = whenFmt.format(new Date(data.start));
+        $('done-email').textContent = leadEmail;
+        const meet = $<HTMLAnchorElement>('done-meet');
+        if (data.meetUrl) { meet.href = data.meetUrl; show(meet); }
+        show(doneStep);
+        doneStep.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+        w.gtag?.('event', 'booking_confirmed', { source });
+      } catch {
+        show(bookError, fallback);
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = label;
+      }
+    });
+  </script>
+</BaseLayout>

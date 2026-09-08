@@ -13,7 +13,7 @@ import { SITE, contactHref } from '../config/site';
         would take.
       </p>
       <div class="mt-10 flex flex-wrap gap-3">
-        <a href={contactHref()} class="btn-primary" data-event="cta_click" data-source="contact_page">Book a call</a>
+        <a href={contactHref('contact_page')} class="btn-primary" data-event="cta_click" data-source="contact_page">Book a call</a>
         <a href={`mailto:${SITE.email}`} class="btn-secondary">Email {SITE.email}</a>
       </div>
     </div>

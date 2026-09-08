@@ -6,16 +6,28 @@ export const SITE = {
   description:
     'Tenorworth is an AI implementation consultancy that puts working AI systems inside regulated and operations-heavy businesses — safely, on a fixed scope, with a measured return.',
   url: 'https://tenorworth.com',
-  // Primary contact channel. Swap for a booking link (Calendly, Cal.com) by
-  // setting bookingUrl; every "Book a call" CTA falls back to email when empty.
+  // Primary contact channel. "Book a call" CTAs go to bookingUrl (our own
+  // /book flow, backed by Supabase Edge Functions + Google Calendar) and fall
+  // back to email when it is empty.
   email: 'hello@tenorworth.com',
-  bookingUrl: '',
+  bookingUrl: '/book',
+  // Supabase project URL (no credentials; the Edge Functions are public
+  // endpoints with their own validation). Override with PUBLIC_SUPABASE_URL.
+  supabaseUrl: 'https://rpvwacqgwuthmnvzqdgs.supabase.co',
   region: 'Southern California',
   linkedin: 'https://www.linkedin.com/in/arkajitbala',
 } as const;
 
-export function contactHref(): string {
-  return SITE.bookingUrl || `mailto:${SITE.email}`;
+// `source` names the CTA (header, home_hero, ...) so the lead row records
+// where the visitor came from. Ignored for the mailto fallback.
+export function contactHref(source?: string): string {
+  if (!SITE.bookingUrl) return `mailto:${SITE.email}`;
+  return source ? `${SITE.bookingUrl}?source=${encodeURIComponent(source)}` : SITE.bookingUrl;
+}
+
+export function functionsUrl(): string {
+  const base = (import.meta.env.PUBLIC_SUPABASE_URL as string | undefined) || SITE.supabaseUrl;
+  return `${base.replace(/\/$/, '')}/functions/v1`;
 }
 
 export const NAV = [
@@ -27,7 +39,22 @@ export const NAV = [
 
 // Static route list for the sitemap. Insights posts and hub pages are added
 // from the content collection in sitemap.xml.ts. Keep in sync when pages are added.
-export const ROUTES = ['', 'services', 'insights', 'about', 'contact', 'privacy'] as const;
+// /card is deliberately absent: it is the in-person contact page behind the QR
+// code and NFC tag (noindex), not a page for search.
+export const ROUTES = ['', 'services', 'insights', 'about', 'contact', 'book', 'privacy'] as const;
+
+// In-person contact card (/card) and the vCard it offers (/arka-bala.vcf).
+// The QR code and NFC tag both point at /card; `?s=qr` / `?s=nfc` tell the
+// lead row how the person arrived. Phone is E.164 (+1619...) or empty, in
+// which case the vCard simply omits it.
+export const CARD = {
+  path: '/card',
+  vcardPath: '/arka-bala.vcf',
+  phone: '',
+  city: 'San Diego',
+  region: 'CA',
+  country: 'USA',
+} as const;
 
 // Author entity for Insights posts. One person, one profile, referenced from
 // every article's structured data so search and answer engines can tie the

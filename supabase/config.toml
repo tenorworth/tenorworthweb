@@ -1,0 +1,15 @@
+# Supabase CLI config for the Tenorworth project. Only the parts we need:
+# `supabase link --project-ref rpvwacqgwuthmnvzqdgs` then `db push` and
+# `functions deploy`. The booking endpoints are public (a visitor has no
+# Supabase session), so JWT verification is off and each function does its
+# own validation. See supabase/README.md.
+project_id = "rpvwacqgwuthmnvzqdgs"
+
+[functions.lead]
+verify_jwt = false
+
+[functions.availability]
+verify_jwt = false
+
+[functions.book]
+verify_jwt = false

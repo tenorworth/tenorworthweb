@@ -1,0 +1,156 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Mark from '../components/Mark.astro';
+import { SITE, AUTHOR, CARD, contactHref, functionsUrl } from '../config/site';
+
+// The page behind the QR code and NFC tag shown at events. Two jobs: put
+// Arka in their contacts in one tap, and give them a reason to leave their
+// own details. Reached as /card?s=qr or /card?s=nfc; noindex on purpose.
+const linkedinHandle = SITE.linkedin.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+const fieldClass =
+  'w-full rounded-md border border-cream-line bg-white/60 px-4 py-3 text-ink placeholder:text-ink-muted/60 ' +
+  'transition focus:border-brass focus:outline-none focus:ring-2 focus:ring-brass/40';
+---
+<BaseLayout title={AUTHOR.name} description={`${AUTHOR.name}, ${AUTHOR.title} at ${SITE.name}. Save the contact, book a call, or ask for the notes.`} noindex>
+  <section id="card" class="container-wide py-16 sm:py-24" data-functions-url={functionsUrl()} data-email={SITE.email}>
+    <div class="mx-auto max-w-md">
+      <Mark class="h-16 w-auto" title={SITE.name} />
+      <p class="eyebrow mt-10">{SITE.name}</p>
+      <h1 class="mt-3 text-5xl leading-[1.05] text-balance">{AUTHOR.name}</h1>
+      <p class="mt-3 text-lg text-ink-muted">{AUTHOR.title}</p>
+      <p class="mt-6 leading-relaxed text-ink-muted text-pretty">
+        Working AI for regulated business: healthcare, credit unions, law firms, life sciences, hospitality.
+        Fixed scope, measured return, one senior person accountable.
+      </p>
+
+      <div class="mt-10 grid gap-3 sm:grid-cols-2">
+        <a href={CARD.vcardPath} class="btn-primary" data-event="cta_click" data-source="card_save_contact">Save contact</a>
+        <a href={contactHref('card')} class="btn-secondary" data-event="cta_click" data-source="card_book">Book a call</a>
+      </div>
+
+      <dl class="mt-10 divide-y divide-cream-line border-y border-cream-line text-sm">
+        <div class="flex items-baseline justify-between gap-6 py-3">
+          <dt class="text-ink-muted">Email</dt>
+          <dd><a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+        </div>
+        {CARD.phone && (
+          <div class="flex items-baseline justify-between gap-6 py-3">
+            <dt class="text-ink-muted">Mobile</dt>
+            <dd><a class="link-quiet" href={`tel:${CARD.phone}`}>{CARD.phone}</a></dd>
+          </div>
+        )}
+        <div class="flex items-baseline justify-between gap-6 py-3">
+          <dt class="text-ink-muted">LinkedIn</dt>
+          <dd><a class="link-quiet" href={SITE.linkedin} rel="me noopener" target="_blank">{linkedinHandle}</a></dd>
+        </div>
+        <div class="flex items-baseline justify-between gap-6 py-3">
+          <dt class="text-ink-muted">Web</dt>
+          <dd><a class="link-quiet" href="/">tenorworth.com</a></dd>
+        </div>
+        <div class="flex items-baseline justify-between gap-6 py-3">
+          <dt class="text-ink-muted">Based in</dt>
+          <dd>{CARD.city}, {CARD.region}</dd>
+        </div>
+      </dl>
+
+      <div class="mt-12 rounded-lg border border-cream-line bg-cream-deep/50 p-6 sm:p-8">
+        <form id="notes-form" class="grid gap-5" novalidate>
+          <div>
+            <h2 class="text-2xl">Want the notes?</h2>
+            <p class="mt-2 text-sm leading-relaxed text-ink-muted">
+              Leave your details and Arka will send a short note on what we discussed, with anything worth reading. Nothing else.
+            </p>
+          </div>
+          <label class="grid gap-2 text-sm font-medium">
+            <span>Name</span>
+            <input class={fieldClass} name="name" type="text" autocomplete="name" required maxlength="120" />
+          </label>
+          <label class="grid gap-2 text-sm font-medium">
+            <span>Email</span>
+            <input class={fieldClass} name="email" type="email" autocomplete="email" required maxlength="254" />
+          </label>
+          <label class="grid gap-2 text-sm font-medium">
+            <span>Where did we meet? <span class="font-normal text-ink-muted">(optional)</span></span>
+            <input class={fieldClass} name="met" type="text" maxlength="120" placeholder="Event, city, or who introduced us" />
+          </label>
+          <!-- Honeypot. Hidden from people; bots tend to fill it. -->
+          <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+            <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+          </div>
+          <p id="notes-error" class="text-sm text-brass-deep" role="alert" hidden></p>
+          <div>
+            <button type="submit" class="btn-primary w-full sm:w-auto" data-event="cta_click" data-source="card_notes">Send me the notes</button>
+          </div>
+        </form>
+        <div id="notes-done" hidden>
+          <p class="eyebrow">Done</p>
+          <h2 class="mt-3 text-2xl text-balance">Good to meet you.</h2>
+          <p class="mt-3 text-sm leading-relaxed text-ink-muted">
+            A note will reach <span id="notes-email" class="text-ink"></span> within a day or two.
+            In the meantime, <a class="link-quiet" href={contactHref('card_done')}>book a call</a> if you would rather talk sooner.
+          </p>
+        </div>
+        <noscript>
+          <p class="mt-4 text-sm text-ink-muted">This form needs JavaScript. Email <a class="link-quiet" href={`mailto:${SITE.email}`}>{SITE.email}</a> instead.</p>
+        </noscript>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const root = document.getElementById('card') as HTMLElement;
+    const base = root.dataset.functionsUrl as string;
+    const contactEmail = root.dataset.email as string;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // ?s=qr / ?s=nfc records how they arrived; anything else is just "card".
+    const via = (new URLSearchParams(location.search).get('s') || '').toLowerCase();
+    const source = /^[a-z]{1,10}$/.test(via) ? `card_${via}` : 'card';
+
+    const form = document.getElementById('notes-form') as HTMLFormElement;
+    const error = document.getElementById('notes-error') as HTMLElement;
+    const done = document.getElementById('notes-done') as HTMLElement;
+    const fallback = `Something went wrong. Please try again, or email ${contactEmail}.`;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      error.hidden = true;
+      const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
+      const fd = new FormData(form);
+      const met = String(fd.get('met') ?? '').trim();
+      const payload = {
+        name: fd.get('name'),
+        email: fd.get('email'),
+        message: met ? `Met at: ${met}` : 'Asked for the notes from an in-person meeting.',
+        website: fd.get('website'),
+        source,
+        timezone: tz,
+      };
+      btn.disabled = true;
+      try {
+        const res = await fetch(`${base}/lead`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
+          error.textContent = fields || data.error || fallback;
+          error.hidden = false;
+          return;
+        }
+        (document.getElementById('notes-email') as HTMLElement).textContent = String(payload.email ?? '').trim().toLowerCase();
+        form.hidden = true;
+        done.hidden = false;
+        const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+        w.gtag?.('event', 'card_notes_requested', { source });
+      } catch {
+        error.textContent = fallback;
+        error.hidden = false;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</BaseLayout>
