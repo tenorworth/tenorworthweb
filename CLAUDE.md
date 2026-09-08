@@ -65,7 +65,8 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
 
 ## Open items
 
-- `hello@tenorworth.com` is assumed in `site.ts`; confirm the mailbox exists (Hostinger email).
+- Contact address is deliberately `hello@tenorworth.com` (an alias of the real `hi@` mailbox,
+  kept off the site to limit bot mail). Do not switch the site to `hi@`.
 - `SITE.bookingUrl` is empty; set a Calendly/Cal.com link and every "Book a call" CTA switches over.
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
   never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
