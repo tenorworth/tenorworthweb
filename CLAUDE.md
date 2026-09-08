@@ -14,7 +14,7 @@ marketing/   Astro 5 + Tailwind 4, static → tenorworth.com          (port 4322
 frontend/    React 18 + Vite + TS + TanStack Query + Supabase → app.tenorworth.com (port 3001)
 backend/     NOT scaffolded. Runtime undecided (FastAPI like SupremoAgent, or Node). Listens on :8002.
 deploy/      bootstrap-user.sh (once), update.sh (every deploy), nginx/ server blocks
-brand/       source logo assets + contact sheet (do not edit; export from here)
+brand/       source logo assets (v2/: circle avatar, circle-safe app icon, business card) — export from here, never edit
 .github/     deploy.yml — build-check, then SSH to VPS and run deploy/update.sh
 ```
 
