@@ -2,12 +2,20 @@
 // weeks: business-hours slots minus whatever Google Calendar reports as busy.
 import { json, preflight } from '../_shared/cors.ts';
 import { freeBusy } from '../_shared/google.ts';
+import { rateLimit } from '../_shared/ratelimit.ts';
 import { SLOT_MINUTES, bookingConfig, generateSlots, removeBusy } from '../_shared/slots.ts';
+
+// Read-only, but each call costs a Google free/busy query. Generous enough for
+// a visitor reloading the slot list; a scraper runs out.
+const MAX_PER_HOUR = 30;
 
 Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
   if (req.method !== 'GET') return json(req, { error: 'Method not allowed' }, 405);
+
+  const limited = await rateLimit(req, 'availability', MAX_PER_HOUR, 3600);
+  if (limited) return limited;
 
   const { timeZone } = bookingConfig();
   const slots = generateSlots();

@@ -6,10 +6,12 @@ involved; the static site calls the functions directly.
 
 ```
 migrations/20260907000000_leads_bookings.sql   leads, bookings (RLS on, no policies)
+migrations/20260910000000_rate_limits.sql      rate_limits + rate_limit_hit()
 functions/lead           POST  save name/email/company/message → { id }
 functions/availability   GET   open 30-min slots = business hours − Google busy
 functions/book           POST  calendar event, booking row, invitation email from hi@, heads-up email
-functions/_shared/       cors, service-role client, Google Calendar, SMTP + iCalendar, slot maths
+functions/_shared/       cors, service-role client, Google Calendar, SMTP + iCalendar, slot maths,
+                         Turnstile verification, per-IP rate limiting
 ```
 
 Flow: form → `lead` (row in `leads`) → `availability` → visitor picks a slot →
@@ -29,6 +31,29 @@ Only the service role reads or writes these tables. A visitor never holds a
 Supabase session, so `verify_jwt = false` in `config.toml` and the functions
 validate input themselves (honeypot on the form, strict field checks, slot
 membership check, unique index on confirmed start times).
+
+## Abuse controls
+
+The endpoints are public and unauthenticated, and a successful `book` writes to
+a real calendar and sends real mail, so three things stand in front of them.
+
+- **Honeypot.** A hidden `website` field on both forms. Filled in means a bot:
+  the function answers 201 and stores nothing.
+- **Turnstile.** Cloudflare's challenge, on the booking form and the /card notes
+  form. The widget sits in `marketing/src/components/Turnstile.astro` and posts
+  its token as `turnstileToken`; `lead` verifies it with Cloudflare before
+  writing a row. `/book` needs a lead id, which now only exists on the far side
+  of a passed challenge, so it carries no widget of its own.
+- **Rate limits, per IP per hour.** Counted in Postgres via `rate_limit_hit()`
+  so the count holds across Edge Function instances: `lead` 5, `book` 3,
+  `availability` 30. Over the cap gets a 429 and a `Retry-After` header.
+
+Both checks are off by default and switch on with their secrets, so a local
+`supabase functions serve` needs no Cloudflare account. Without
+`TURNSTILE_SECRET_KEY` the token is not checked; with it, verification fails
+closed. The rate limiter fails open on a database error and does not limit a
+request that arrives with no forwarded IP. The table stores a salted SHA-256 of
+the IP, never the address, and sweeps rows after a day.
 
 ## One-time setup
 
@@ -86,11 +111,28 @@ supabase secrets set \
 why it is a secret and not in the repo. Turn on the waiting room for that room
 in Zoom settings, since every lead gets the same link.
 
+### 2c. Turnstile
+
+1. Cloudflare dashboard → **Turnstile** → **Add widget**. Domains:
+   `tenorworth.com`, `www.tenorworth.com`, `localhost`. Mode **Managed**.
+2. Put the **site key** in `marketing/.env` (and in the VPS copy) as
+   `PUBLIC_TURNSTILE_SITE_KEY`. It is public and ends up in the built HTML.
+3. Put the **secret key** in the functions, never in the repo:
+
+   ```bash
+   supabase secrets set TURNSTILE_SECRET_KEY='...'
+   supabase functions deploy lead
+   ```
+
+Cloudflare's always-passing test keys are handy while wiring this up: site key
+`1x00000000000000000000AA`, secret key `1x0000000000000000000000000000000AA`.
+
 Optional secrets (defaults in brackets): `GOOGLE_CALENDAR_ID` [primary],
 `BOOKING_TIMEZONE` [America/Los_Angeles], `BOOKING_START_HOUR` [9],
 `BOOKING_END_HOUR` [17], `BOOKING_WINDOW_DAYS` [14],
 `BOOKING_MIN_NOTICE_HOURS` [4], `ALLOWED_ORIGINS`
-[tenorworth.com, www, localhost:4322].
+[tenorworth.com, www, localhost:4322], `TURNSTILE_SECRET_KEY` [checks skipped],
+`RATE_LIMIT_SALT` [the service role key].
 
 ### 3. Smoke test
 

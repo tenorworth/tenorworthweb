@@ -89,6 +89,12 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   iCalendar invitation from hi@tenorworth.com over Hostinger SMTP with the Zoom personal
   room link, and a heads-up to `BOOKING_NOTIFY_EMAIL`. Google, SMTP and Zoom values live in
   `supabase secrets`, never in the repo. Setup runbook: `supabase/README.md`.
+- **Form abuse controls**: honeypot, Cloudflare Turnstile, and per-IP hourly rate limits
+  (`lead` 5, `book` 3, `availability` 30, counted in Postgres by `rate_limit_hit()`). Both
+  the challenge and the limiter switch on with their secrets, so local dev needs neither.
+  Site key is `PUBLIC_TURNSTILE_SITE_KEY` in `marketing/.env`; the secret key lives in
+  `supabase secrets` as `TURNSTILE_SECRET_KEY`. Turnstile guards `lead` only — `book`
+  requires a lead id, which exists only after a passed challenge.
 - In-person contact card: `/card` (marketing/src/pages/card.astro, noindex, not in `ROUTES`)
   with "Save contact" → `/arka-bala.vcf` (built from `AUTHOR`/`CARD` in site.ts; nginx serves
   `.vcf` as text/vcard) and a "Send me the notes" form → `lead` function with source `card_qr` /

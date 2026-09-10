@@ -1,0 +1,33 @@
+---
+// Cloudflare Turnstile widget for the public forms. The site key comes from
+// site.ts, or from PUBLIC_TURNSTILE_SITE_KEY when that is set; either one empty
+// renders nothing, which is how a build opts out of the challenge. The Edge
+// Function skips its half in the same way when TURNSTILE_SECRET_KEY is absent.
+//
+// "interaction-only" keeps the box out of the layout unless Cloudflare actually
+// wants the visitor to do something. The token lands in a hidden
+// `cf-turnstile-response` input inside the surrounding form.
+interface Props {
+  /** Names the form in Turnstile's own analytics. */
+  action?: string;
+  class?: string;
+}
+
+import { SITE } from '../config/site';
+
+const { action, class: className } = Astro.props;
+const override = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY as string | undefined;
+const siteKey = override === undefined ? SITE.turnstileSiteKey : override;
+---
+{siteKey && (
+  <Fragment>
+    <div
+      class:list={['cf-turnstile', className]}
+      data-sitekey={siteKey}
+      data-action={action}
+      data-appearance="interaction-only"
+      data-theme="light"
+    />
+    <script is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+  </Fragment>
+)}

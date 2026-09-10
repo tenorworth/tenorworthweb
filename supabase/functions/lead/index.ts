@@ -1,14 +1,28 @@
-// POST /functions/v1/lead — step one of "Book a call". Saves the visitor's
-// details and returns the lead id the booking step needs.
-import { json, preflight, readJson, str } from '../_shared/cors.ts';
+// POST /functions/v1/lead — step one of "Book a call", and the "send me the
+// notes" form on /card. Saves the visitor's details and returns the lead id the
+// booking step needs.
+//
+// Three layers keep bots out: a honeypot field, a Turnstile token the browser
+// widget produces, and a per-IP rate limit. The booking step relies on this:
+// /book needs a lead id, which only exists once a request got through here.
+import { clientIp, json, preflight, readJson, str } from '../_shared/cors.ts';
 import { serviceClient } from '../_shared/db.ts';
+import { rateLimit } from '../_shared/ratelimit.ts';
+import { verifyTurnstile } from '../_shared/turnstile.ts';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+// A person filling in the form once, changing their mind, and starting over is
+// well inside this. A script is not.
+const MAX_PER_HOUR = 5;
 
 Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
   if (req.method !== 'POST') return json(req, { error: 'Method not allowed' }, 405);
+
+  const limited = await rateLimit(req, 'lead', MAX_PER_HOUR, 3600);
+  if (limited) return limited;
 
   const body = await readJson(req);
   if (!body) return json(req, { error: 'Invalid JSON body' }, 400);
@@ -16,6 +30,11 @@ Deno.serve(async (req) => {
   // Honeypot: real visitors never see the "website" field. Bots fill it.
   // Pretend it worked and store nothing.
   if (str(body.website, 10)) return json(req, { id: crypto.randomUUID() }, 201);
+
+  const passed = await verifyTurnstile(str(body.turnstileToken, 4096), clientIp(req));
+  if (!passed) {
+    return json(req, { error: 'The spam check did not pass. Please try again, or email us.' }, 403);
+  }
 
   const name = str(body.name, 120);
   const email = str(body.email, 254).toLowerCase();

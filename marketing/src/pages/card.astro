@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Mark from '../components/Mark.astro';
+import Turnstile from '../components/Turnstile.astro';
 import { SITE, AUTHOR, CARD, contactHref, functionsUrl } from '../config/site';
 
 // The page behind the QR code and NFC tag shown at events. Two jobs: put
@@ -77,6 +78,7 @@ const fieldClass =
           <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
             <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
           </div>
+          <Turnstile action="card_notes" />
           <p id="notes-error" class="text-sm text-brass-deep" role="alert" hidden></p>
           <div>
             <button type="submit" class="btn-primary w-full sm:w-auto" data-event="cta_click" data-source="card_notes">Send me the notes</button>
@@ -112,12 +114,27 @@ const fieldClass =
     const done = document.getElementById('notes-done') as HTMLElement;
     const fallback = `Something went wrong. Please try again, or email ${contactEmail}.`;
 
+    // Turnstile, when it is configured. Tokens are single use, so a failed
+    // submit resets the widget before the visitor tries again.
+    const turnstile = () => (window as unknown as { turnstile?: { reset: () => void } }).turnstile;
+    const hasTurnstile = () => Boolean(document.querySelector('.cf-turnstile'));
+    const turnstileToken = () =>
+      (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value ?? '';
+
+    const fail = (text: string) => { error.textContent = text; error.hidden = false; };
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       error.hidden = true;
       const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
       const fd = new FormData(form);
       const met = String(fd.get('met') ?? '').trim();
+      const token = turnstileToken();
+      if (hasTurnstile() && !token) {
+        fail('Please finish the spam check above, then send. If nothing is showing, give it a moment and try again.');
+        document.querySelector('.cf-turnstile')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return;
+      }
       const payload = {
         name: fd.get('name'),
         email: fd.get('email'),
@@ -125,6 +142,7 @@ const fieldClass =
         website: fd.get('website'),
         source,
         timezone: tz,
+        turnstileToken: token,
       };
       btn.disabled = true;
       try {
@@ -135,9 +153,9 @@ const fieldClass =
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
+          turnstile()?.reset();
           const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
-          error.textContent = fields || data.error || fallback;
-          error.hidden = false;
+          fail(fields || data.error || fallback);
           return;
         }
         (document.getElementById('notes-email') as HTMLElement).textContent = String(payload.email ?? '').trim().toLowerCase();
@@ -146,8 +164,8 @@ const fieldClass =
         const w = window as unknown as { gtag?: (...args: unknown[]) => void };
         w.gtag?.('event', 'card_notes_requested', { source });
       } catch {
-        error.textContent = fallback;
-        error.hidden = false;
+        turnstile()?.reset();
+        fail(fallback);
       } finally {
         btn.disabled = false;
       }

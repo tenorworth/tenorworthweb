@@ -6,15 +6,27 @@ import { json, preflight, readJson, str } from '../_shared/cors.ts';
 import { serviceClient } from '../_shared/db.ts';
 import { createEvent, deleteEvent, freeBusy } from '../_shared/google.ts';
 import { buildInvite, mailConfig, sendInvite, sendNotification, zoomUrl } from '../_shared/mail.ts';
+import { rateLimit } from '../_shared/ratelimit.ts';
 import { SLOT_MINUTES, bookingConfig, generateSlots } from '../_shared/slots.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TAKEN = 'That time was just taken. Please pick another.';
 
+// Every success here writes to the calendar and sends mail from hi@, so this is
+// the tightest cap on the site. Losing a slot to a race and picking another
+// still fits.
+const MAX_PER_HOUR = 3;
+
 Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
   if (req.method !== 'POST') return json(req, { error: 'Method not allowed' }, 405);
+
+  const limited = await rateLimit(
+    req, 'book', MAX_PER_HOUR, 3600,
+    'That is several booking attempts in a row. Please wait a little, or email us and we will find a time.',
+  );
+  if (limited) return limited;
 
   const body = await readJson(req);
   if (!body) return json(req, { error: 'Invalid JSON body' }, 400);

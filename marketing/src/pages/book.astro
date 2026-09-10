@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Turnstile from '../components/Turnstile.astro';
 import { SITE, functionsUrl } from '../config/site';
 
 const fieldClass =
@@ -40,6 +41,7 @@ const fieldClass =
         <div class="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
           <label>Website <input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
         </div>
+        <Turnstile action="book" />
         <p id="lead-error" class="text-sm text-brass-deep" role="alert" hidden></p>
         <div class="flex flex-wrap items-center gap-4">
           <button type="submit" class="btn-primary" data-event="cta_click" data-source="book_form">Choose a time</button>
@@ -130,6 +132,14 @@ const fieldClass =
     const show = (el: HTMLElement, text?: string) => { if (text !== undefined) el.textContent = text; el.hidden = false; };
     const hide = (el: HTMLElement) => { el.hidden = true; };
 
+    // Turnstile, when it is configured. The widget writes its token into a
+    // hidden input inside the form; tokens are single use, so a failed submit
+    // resets the widget before the visitor tries again.
+    const turnstile = () => (window as unknown as { turnstile?: { reset: () => void } }).turnstile;
+    const hasTurnstile = () => Boolean(document.querySelector('.cf-turnstile'));
+    const turnstileToken = () =>
+      (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value ?? '';
+
     async function api(path: string, init?: RequestInit) {
       const res = await fetch(`${base}${path}`, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
       const data = await res.json().catch(() => ({}));
@@ -142,14 +152,22 @@ const fieldClass =
       hide(leadError);
       const btn = form.querySelector('button[type=submit]') as HTMLButtonElement;
       const fd = new FormData(form);
+      const token = turnstileToken();
+      if (hasTurnstile() && !token) {
+        show(leadError, 'Please finish the spam check above, then choose a time. If nothing is showing, give it a moment and try again.');
+        document.querySelector('.cf-turnstile')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        return;
+      }
       const payload = {
         name: fd.get('name'), email: fd.get('email'), company: fd.get('company'),
         message: fd.get('message'), website: fd.get('website'), source, timezone: tz,
+        turnstileToken: token,
       };
       btn.disabled = true;
       try {
         const { ok, data } = await api('/lead', { method: 'POST', body: JSON.stringify(payload) });
         if (!ok) {
+          turnstile()?.reset();
           const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
           show(leadError, fields || data.error || fallback);
           return;
@@ -160,6 +178,7 @@ const fieldClass =
         show(slotsStep);
         loadSlots();
       } catch {
+        turnstile()?.reset();
         show(leadError, fallback);
       } finally {
         btn.disabled = false;

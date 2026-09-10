@@ -1,4 +1,5 @@
-// CORS + JSON helpers shared by the public booking functions.
+// Request helpers shared by the public booking functions: CORS, JSON bodies,
+// field trimming, caller IP.
 // Origins: comma-separated ALLOWED_ORIGINS secret, else the defaults below.
 
 const DEFAULT_ORIGINS = [
@@ -53,4 +54,15 @@ export async function readJson(req: Request): Promise<Record<string, unknown> | 
 /** Trimmed string field, capped at `max` characters; '' when absent. */
 export function str(v: unknown, max: number): string {
   return typeof v === 'string' ? v.trim().slice(0, max) : '';
+}
+
+/**
+ * Caller's IP as seen by the platform edge. The left-most x-forwarded-for entry
+ * is the client; the rest are proxies. '' when no header is present, in which
+ * case callers should not guess.
+ */
+export function clientIp(req: Request): string {
+  const forwarded = req.headers.get('x-forwarded-for') ?? '';
+  const first = forwarded.split(',')[0]?.trim() ?? '';
+  return first || (req.headers.get('cf-connecting-ip') ?? '').trim();
 }

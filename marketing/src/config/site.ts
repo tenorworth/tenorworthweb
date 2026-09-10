@@ -17,6 +17,11 @@ export const SITE = {
   // Supabase project URL (no credentials; the Edge Functions are public
   // endpoints with their own validation). Override with PUBLIC_SUPABASE_URL.
   supabaseUrl: 'https://rpvwacqgwuthmnvzqdgs.supabase.co',
+  // Cloudflare Turnstile site key for the /book and /card forms. Public by
+  // design: it ships in the built HTML. The matching secret key lives in
+  // `supabase secrets`. Override with PUBLIC_TURNSTILE_SITE_KEY; set that to an
+  // empty string to build without the challenge.
+  turnstileSiteKey: '0x4AAAAAAEvbIaLy-oF4NOKu',
   region: 'Southern California',
   linkedin: 'https://www.linkedin.com/in/arkajitbala',
 } as const;
