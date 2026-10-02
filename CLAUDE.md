@@ -43,6 +43,10 @@ cd frontend  && npm run build                 # tsc + vite build → frontend/di
   `try_files $uri $uri.html` depends on this. Don't change one without the other.
 - **CTAs** carry `data-event="cta_click" data-source="..."`; the GA component forwards
   them automatically when `PUBLIC_GA_MEASUREMENT_ID` is set.
+- **LinkedIn Insight Tag** (`LinkedInInsight.astro`) loads only when `PUBLIC_LINKEDIN_PARTNER_ID`
+  is set, and never for browsers sending Global Privacy Control — `privacy.astro` promises
+  that, so change both together. `PUBLIC_LINKEDIN_CONVERSION_BOOKING` (optional) is the
+  Campaign Manager conversion id fired when a booking is confirmed on `/book`.
 - The logo mark is an inline SVG component (`Mark.astro`) using `currentColor` for ink
   and a fixed brass point. Source of truth is `brand/mark-transparent.svg`.
 - **Home page graphics**: the diagrams (engagement arc, human-in-the-loop flow, governance

@@ -275,8 +275,14 @@ const fieldClass =
         if (data.meetUrl) { meet.href = data.meetUrl; show(meet); }
         show(doneStep);
         doneStep.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        const w = window as unknown as { gtag?: (...args: unknown[]) => void };
+        const w = window as unknown as {
+          gtag?: (...args: unknown[]) => void;
+          lintrk?: (cmd: 'track', data: { conversion_id: number }) => void;
+        };
         w.gtag?.('event', 'booking_confirmed', { source });
+        // LinkedIn conversion, created in Campaign Manager. lintrk is absent when the tag is off.
+        const liConversion = Number(import.meta.env.PUBLIC_LINKEDIN_CONVERSION_BOOKING);
+        if (liConversion) w.lintrk?.('track', { conversion_id: liConversion });
       } catch {
         show(bookError, fallback);
       } finally {
