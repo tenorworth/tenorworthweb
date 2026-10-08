@@ -5,8 +5,9 @@ served by three public Edge Functions and two tables. No app backend is
 involved; the static site calls the functions directly.
 
 ```
-migrations/20260907000000_leads_bookings.sql   leads, bookings (RLS on, no policies)
+migrations/20260907000000_leads_bookings.sql   leads, bookings (RLS on, service role writes)
 migrations/20260910000000_rate_limits.sql      rate_limits + rate_limit_hit()
+migrations/20261007000000_pipeline.sql         prospects, prospect_events, admin read on leads/bookings
 functions/lead           POST  save name/email/company/message → { id }
 functions/availability   GET   open 30-min slots = business hours − Google busy
 functions/book           POST  calendar event, booking row, invitation email from hi@, heads-up email
@@ -27,10 +28,11 @@ Why not let Google send the invite: Google Calendar only sends from the account
 that owns the calendar, which is a personal Gmail address. Sending from hi@
 would otherwise need Google Workspace for the domain.
 
-Only the service role reads or writes these tables. A visitor never holds a
-Supabase session, so `verify_jwt = false` in `config.toml` and the functions
-validate input themselves (honeypot on the form, strict field checks, slot
-membership check, unique index on confirmed start times).
+Only the service role writes these tables (pipeline admins can read them, see
+below). A visitor never holds a Supabase session, so `verify_jwt = false` in
+`config.toml` and the functions validate input themselves (honeypot on the
+form, strict field checks, slot membership check, unique index on confirmed
+start times).
 
 ## Abuse controls
 
@@ -144,6 +146,44 @@ Then open https://tenorworth.com/book, book a slot with your own email, and
 check: invitation from hi@ arrives with Accept/Decline and the Zoom link, the
 heads-up lands at `BOOKING_NOTIFY_EMAIL`, the event is on the calendar, and
 rows exist in `leads` and `bookings` (Table Editor).
+
+## Prospect pipeline (app.tenorworth.com/pipeline)
+
+`migrations/20261007000000_pipeline.sql` adds `prospects` (one per person,
+with a stage) and `prospect_events` (notes and stage changes). Each website
+lead is attached to a prospect by email, and a booking moves the prospect to
+"call booked". Both happen in database triggers, so the Edge Functions are
+unchanged and need no redeploy. The migration backfills a prospect for every
+existing lead.
+
+Only a signed-in user whose `app_metadata.role` is `admin` can read any of
+it, enforced by RLS. Admins can read `leads` and `bookings` but never write
+them; those stay service-role only.
+
+One-time setup, in this order:
+
+1. `supabase db push` (or paste the migration into the SQL editor).
+2. **Authentication → Sign In / Providers**: Email on, **"Allow new users to
+   sign up" off**. The login form never creates accounts.
+3. **Authentication → URL Configuration**: Site URL
+   `https://app.tenorworth.com`; redirect URLs `https://app.tenorworth.com/**`
+   and `http://localhost:3001/**`.
+4. **Authentication → Emails → SMTP Settings**: the built-in sender is
+   rate-limited and only mails project team members. Use the same Hostinger
+   mailbox as the booking invites (sender `hi@tenorworth.com`).
+5. **Authentication → Users → Add user**: create `arkajit.bala@gmail.com`
+   with "Auto confirm" on.
+6. Make that user an admin (SQL editor):
+
+   ```sql
+   update auth.users
+   set raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'
+   where email = 'arkajit.bala@gmail.com';
+   ```
+
+   The role lives in the session token, so sign out and back in after
+   changing it.
+7. Sign in at https://app.tenorworth.com/login with the emailed link.
 
 ## Changing things
 

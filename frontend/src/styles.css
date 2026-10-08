@@ -13,9 +13,41 @@
   --font-sans: "Inter", system-ui, sans-serif;
 }
 
-body {
-  font-family: var(--font-sans);
-  background: var(--color-cream);
-  color: var(--color-ink);
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-cream);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+  }
+}
+
+/* Same shapes as the marketing site (marketing/src/styles/global.css). */
+@layer components {
+  .eyebrow {
+    @apply text-xs font-medium uppercase tracking-[0.16em] text-brass-deep;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-ink px-4 py-2.5 text-sm
+           font-medium text-cream transition hover:bg-ink-soft disabled:opacity-50
+           focus:outline-none focus:ring-2 focus:ring-brass/70 focus:ring-offset-2 focus:ring-offset-cream;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-ink/25 px-4 py-2.5 text-sm
+           font-medium text-ink transition hover:border-brass hover:text-brass-deep disabled:opacity-50;
+  }
+  .field {
+    @apply w-full rounded-md border border-cream-line bg-white/60 px-3 py-2 text-sm text-ink
+           placeholder:text-ink-muted/60 transition
+           focus:border-brass focus:outline-none focus:ring-2 focus:ring-brass/40;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium text-ink-muted;
+  }
 }

@@ -105,6 +105,14 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   `card_nfc` / `card`. QR code for `https://tenorworth.com/card?s=qr` lives in `brand/v2/qr-card.{svg,png}`;
   regenerate with `npx qrcode` if the URL changes. Phone is `SITE.phone` / `SITE.phoneDisplay` (Google
   Voice), shown on /card, the vCard, /contact, the footer and the org schema; empty = omitted everywhere.
+- **Prospect pipeline** at `app.tenorworth.com/pipeline` (frontend `src/pages/Pipeline.tsx`,
+  `Prospect.tsx`, `ProspectNew.tsx`; queries in `src/lib/pipeline.ts`). Stages: new → contacted →
+  call booked → discovery → proposal sent → won / lost. `prospects` is one row per person;
+  triggers attach each website lead by email and move the prospect to "call booked" on a
+  booking, so the Edge Functions know nothing about it. Email magic-link sign-in, sign-ups
+  off; access is RLS on `app_metadata.role = 'admin'` (never `user_metadata`). Sector ids in
+  `pipeline.ts` mirror `INDUSTRY_IDS` in `industries.ts` — change both together. Setup:
+  `supabase/README.md#prospect-pipeline-apptenorworthcompipeline`.
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
   never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
   (local + VPS) carries the URL and the publishable key. Secret keys stay in the

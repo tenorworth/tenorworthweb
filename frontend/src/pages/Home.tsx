@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
@@ -12,6 +13,7 @@ export default function Home() {
       <p className="mt-8 rounded-md border border-cream-line bg-cream-deep/50 p-4 text-sm text-ink-muted">
         Supabase: {supabase ? 'configured' : 'not configured — copy .env.example to .env and fill in the project keys.'}
       </p>
+      <Link to="/pipeline" className="btn-secondary mt-8">Sign in</Link>
     </main>
   );
 }
