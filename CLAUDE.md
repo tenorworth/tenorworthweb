@@ -109,8 +109,9 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   `Prospect.tsx`, `ProspectNew.tsx`; queries in `src/lib/pipeline.ts`). Stages: new → contacted →
   call booked → discovery → proposal sent → won / lost. `prospects` is one row per person;
   triggers attach each website lead by email and move the prospect to "call booked" on a
-  booking, so the Edge Functions know nothing about it. Email magic-link sign-in, sign-ups
-  off; access is RLS on `app_metadata.role = 'admin'` (never `user_metadata`). Sector ids in
+  booking, so the Edge Functions know nothing about it. Email + password sign-in, sign-ups
+  off (main admin `tenorworth@gmail.com`, created in the dashboard); access is RLS on
+  `app_metadata.role = 'admin'` (never `user_metadata`). Sector ids in
   `pipeline.ts` mirror `INDUSTRY_IDS` in `industries.ts` — change both together. Setup:
   `supabase/README.md#prospect-pipeline-apptenorworthcompipeline`.
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),

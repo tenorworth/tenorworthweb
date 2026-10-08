@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import Shell from './components/Shell';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Pipeline from './pages/Pipeline';
@@ -10,9 +11,11 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/pipeline" element={<Pipeline />} />
-      <Route path="/pipeline/new" element={<ProspectNew />} />
-      <Route path="/pipeline/:id" element={<Prospect />} />
+      <Route element={<Shell />}>
+        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/pipeline/new" element={<ProspectNew />} />
+        <Route path="/pipeline/:id" element={<Prospect />} />
+      </Route>
     </Routes>
   );
 }

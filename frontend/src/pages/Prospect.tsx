@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ProspectForm from '../components/ProspectForm';
-import Shell from '../components/Shell';
 import {
   MANUAL_SOURCES, STAGES, daysSince, formatDateTime, formatUsd, offerLabel, sectorLabel, sourceLabel, stageLabel,
   useActivity, useAddNote, useDeleteNote, useDeleteProspect, useProspect, useUpdateProspect,
@@ -13,15 +12,13 @@ export default function Prospect() {
   const { data: p, isLoading, error } = useProspect(id);
 
   return (
-    <Shell>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Link to="/pipeline" className="text-sm text-ink-muted hover:text-brass-deep">← Pipeline</Link>
-        {isLoading && <p className="mt-6 text-sm text-ink-muted">Loading…</p>}
-        {error && <p className="mt-6 text-sm text-brass-deep">{(error as Error).message}</p>}
-        {!isLoading && !error && !p && <p className="mt-6 text-sm text-ink-muted">This prospect no longer exists.</p>}
-        {p && <Detail key={p.id} p={p} />}
-      </main>
-    </Shell>
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <Link to="/pipeline" className="text-sm text-ink-muted hover:text-brass-deep">← Pipeline</Link>
+      {isLoading && <p className="mt-6 text-sm text-ink-muted">Loading…</p>}
+      {error && <p className="mt-6 text-sm text-brass-deep">{(error as Error).message}</p>}
+      {!isLoading && !error && !p && <p className="mt-6 text-sm text-ink-muted">This prospect no longer exists.</p>}
+      {p && <Detail key={p.id} p={p} />}
+    </main>
   );
 }
 

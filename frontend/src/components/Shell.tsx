@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { isAdmin, useSession } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
-// Signed-in, admin-only frame for the pipeline pages.
-export default function Shell({ children }: { children: ReactNode }) {
+// Signed-in, admin-only layout route for the pipeline pages. Pages mount (and
+// start querying) only once this has decided the viewer is an admin.
+export default function Shell() {
   const session = useSession();
   const location = useLocation();
 
@@ -49,7 +50,7 @@ export default function Shell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      {children}
+      <Outlet />
     </div>
   );
 }

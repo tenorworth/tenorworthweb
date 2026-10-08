@@ -164,26 +164,22 @@ One-time setup, in this order:
 
 1. `supabase db push` (or paste the migration into the SQL editor).
 2. **Authentication → Sign In / Providers**: Email on, **"Allow new users to
-   sign up" off**. The login form never creates accounts.
-3. **Authentication → URL Configuration**: Site URL
-   `https://app.tenorworth.com`; redirect URLs `https://app.tenorworth.com/**`
-   and `http://localhost:3001/**`.
-4. **Authentication → Emails → SMTP Settings**: the built-in sender is
-   rate-limited and only mails project team members. Use the same Hostinger
-   mailbox as the booking invites (sender `hi@tenorworth.com`).
-5. **Authentication → Users → Add user**: create `arkajit.bala@gmail.com`
-   with "Auto confirm" on.
-6. Make that user an admin (SQL editor):
+   sign up" off**. The login form signs in with email and password and never
+   creates accounts.
+3. **Authentication → Users → Add user → Create new user**: the main admin is
+   `tenorworth@gmail.com`. Set the password there, with "Auto confirm" on.
+   Passwords never go in this repo. To reset one, use the same screen.
+4. Make that user an admin (SQL editor):
 
    ```sql
    update auth.users
    set raw_app_meta_data = raw_app_meta_data || '{"role": "admin"}'
-   where email = 'arkajit.bala@gmail.com';
+   where email = 'tenorworth@gmail.com';
    ```
 
    The role lives in the session token, so sign out and back in after
    changing it.
-7. Sign in at https://app.tenorworth.com/login with the emailed link.
+5. Sign in at https://app.tenorworth.com/login.
 
 ## Changing things
 
