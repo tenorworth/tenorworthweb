@@ -88,6 +88,12 @@ switches to the HTTPS config with the `www` → apex redirect.
 `/home/tenorworth/repo/frontend/.env` from `frontend/.env.example` once the
 Supabase project exists.
 
+**7. Marketing env.** `marketing/.env` is not tracked either. Create it on the VPS at
+`/home/tenorworth/repo/marketing/.env` from `marketing/.env.example` with the public
+build-time ids: `PUBLIC_GA_MEASUREMENT_ID` (Google Analytics, `G-…`),
+`PUBLIC_LINKEDIN_PARTNER_ID`, `PUBLIC_TURNSTILE_SITE_KEY`. Astro inlines them at build,
+so a change needs a redeploy (`bash deploy/update.sh`) to reach the live site.
+
 ### Manual deploy
 
 ```bash

@@ -34,6 +34,10 @@ warn() { echo -e "${YELLOW}    [!] $1${NC}"; }
 # ---------- Marketing site (Astro) ----------
 step "Building marketing site (Astro)"
 cd "$REPO_DIR/marketing"
+# Astro reads PUBLIC_* from marketing/.env at build time (GA measurement id,
+# LinkedIn partner id, Turnstile site key). It is NOT tracked; create it on
+# the VPS once from marketing/.env.example.
+[ -f .env ] || warn "marketing/.env missing — analytics tags and Turnstile will be off in the build."
 npm ci --silent --no-audit --no-fund
 npm run build
 echo "    Built $(find dist -name '*.html' | wc -l | tr -d ' ') pages."
