@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Shell from './components/Shell';
+import Events from './pages/Events';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Pipeline from './pages/Pipeline';
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/pipeline/new" element={<ProspectNew />} />
         <Route path="/pipeline/:id" element={<Prospect />} />
+        <Route path="/events" element={<Events />} />
       </Route>
     </Routes>
   );

@@ -114,6 +114,12 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   `app_metadata.role = 'admin'` (never `user_metadata`). Sector ids in
   `pipeline.ts` mirror `INDUSTRY_IDS` in `industries.ts` — change both together. Setup:
   `supabase/README.md#prospect-pipeline-apptenorworthcompipeline`.
+- **Field calendar** at `app.tenorworth.com/events` (frontend `src/pages/Events.tsx`, queries and
+  calendar links in `src/lib/events.ts`): San Diego sector events, mixers and speaker calls, with
+  price, going/maybe/skip, add-to-calendar links and an "Ask Claude to register" queue. Tables
+  `field_events` / `field_event_registrations` / `field_calendar_runs`, admin-only RLS; event
+  sectors reuse the pipeline's `SECTORS` ids. Filled by scheduled Claude tasks on the principal's
+  Mac, never from the repo. See `supabase/README.md#field-calendar-apptenorworthcomevents`.
 - Supabase: project `rpvwacqgwuthmnvzqdgs` in "Tenorworth's Org" (Free plan, us-east-1),
   never SupremoAgent's `lslzrqsiyqrzqwjtycpe`. `.mcp.json` points at it; `frontend/.env`
   (local + VPS) carries the URL and the publishable key. Secret keys stay in the

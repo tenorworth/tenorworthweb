@@ -8,6 +8,7 @@ involved; the static site calls the functions directly.
 migrations/20260907000000_leads_bookings.sql   leads, bookings (RLS on, service role writes)
 migrations/20260910000000_rate_limits.sql      rate_limits + rate_limit_hit()
 migrations/20261007000000_pipeline.sql         prospects, prospect_events, admin read on leads/bookings
+migrations/20261013201542_field_calendar.sql   field_events, field_event_registrations, field_calendar_runs
 functions/lead           POST  save name/email/company/message → { id }
 functions/availability   GET   open 30-min slots = business hours − Google busy
 functions/book           POST  calendar event, booking row, invitation email from hi@, heads-up email
@@ -180,6 +181,29 @@ One-time setup, in this order:
    The role lives in the session token, so sign out and back in after
    changing it.
 5. Sign in at https://app.tenorworth.com/login.
+
+## Field calendar (app.tenorworth.com/events)
+
+`migrations/20261013201542_field_calendar.sql` adds the San Diego events
+worth attending to meet buyers:
+
+- `field_events`: one row per event, keyed on `slug`. Times are San Diego
+  wall-clock (`timestamp`, no zone). `price_usd` is the non-member ticket
+  (0 = free, null = no public price), `price_label` the short display text,
+  and `plan` the going / maybe / skip choice made on the page.
+- `field_event_registrations`: the "Ask Claude to register" queue, one row per
+  event, with a `state` the registration task writes back. A row reaching
+  `registered` sets the event's plan to going (trigger).
+- `field_calendar_runs`: one row per weekly research run, for "Last search".
+
+Admins only, through the same `public.is_admin()` RLS as the pipeline. Two
+scheduled Claude tasks on the principal's Mac write to these tables through the
+Supabase MCP server: a weekly search that adds events (never touching `plan`),
+and a weekday task that works the registration queue in his Chrome, asking
+before it submits, sends or pays anything. The event data is not in this
+repo; it lives only in the database.
+
+Setup: `supabase db push` (or paste the migration into the SQL editor).
 
 ## Changing things
 

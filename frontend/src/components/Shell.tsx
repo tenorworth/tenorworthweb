@@ -1,9 +1,14 @@
 import type { ReactNode } from 'react';
-import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { isAdmin, useSession } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 
-// Signed-in, admin-only layout route for the pipeline pages. Pages mount (and
+const NAV = [
+  { to: '/pipeline', label: 'Pipeline' },
+  { to: '/events', label: 'Field calendar' },
+];
+
+// Signed-in, admin-only layout route for the pipeline and field calendar pages. Pages mount (and
 // start querying) only once this has decided the viewer is an admin.
 export default function Shell() {
   const session = useSession();
@@ -39,11 +44,23 @@ export default function Shell() {
     <div className="min-h-screen">
       <header className="border-b border-cream-line bg-cream">
         <div className="mx-auto flex max-w-[96rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link to="/pipeline" className="flex items-center gap-2.5">
-            <img src="/favicon.svg" alt="" className="h-7 w-7" />
-            <span className="font-display text-lg">Tenorworth</span>
-            <span className="eyebrow hidden sm:inline">Pipeline</span>
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/pipeline" className="flex items-center gap-2.5">
+              <img src="/favicon.svg" alt="" className="h-7 w-7" />
+              <span className="hidden font-display text-lg sm:inline">Tenorworth</span>
+            </Link>
+            <nav className="flex items-center gap-4">
+              {NAV.map((n) => (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  className={({ isActive }) => `eyebrow ${isActive ? '' : 'text-ink-muted hover:text-brass-deep'}`}
+                >
+                  {n.label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
           <div className="flex items-center gap-4 text-sm">
             <span className="hidden text-ink-muted md:inline">{session.user.email}</span>
             <button type="button" onClick={signOut} className="text-ink-muted hover:text-brass-deep">Sign out</button>
