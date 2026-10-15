@@ -23,7 +23,10 @@ export const SITE = {
   // empty string to build without the challenge.
   turnstileSiteKey: '0x4AAAAAAEvbIaLy-oF4NOKu',
   region: 'Southern California',
+  // Principal's profile and the company page. Both appear in the footer; the company
+  // page is the Organization's `sameAs` so search engines tie the two together.
   linkedin: 'https://www.linkedin.com/in/arkajitbala',
+  linkedinCompany: 'https://www.linkedin.com/company/tenorworth',
 } as const;
 
 // `source` names the CTA (header, home_hero, ...) so the lead row records

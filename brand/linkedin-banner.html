@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tenorworth LinkedIn banner 1584x396</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=Inter:wght@400;500&display=block" rel="stylesheet">
+<style>
+  /* Brand tokens: ink #141B2D, cream #F4F1EA, brass #B8985A. Spec: BRAND.md "LinkedIn banner (1584x396)".
+     LinkedIn overlays the square logo on the bottom-left (roughly x 3-23%, y 25-100%), so everything
+     important sits right of x=440 and inside the centre band for the mobile crop. */
+  html, body { margin: 0; padding: 0; }
+  body { width: 1584px; height: 396px; overflow: hidden; position: relative; background: #F4F1EA; font-family: Inter, sans-serif; }
+  .grid, .grid-major { position: absolute; inset: 0; }
+  .grid {
+    background-image:
+      linear-gradient(to right, rgba(20,27,45,.055) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20,27,45,.055) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .grid-major {
+    background-image:
+      linear-gradient(to right, rgba(20,27,45,.075) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20,27,45,.075) 1px, transparent 1px);
+    background-size: 120px 120px;
+    background-position: 8px 6px;
+  }
+  .word {
+    position: absolute; left: 440px; top: 104px;
+    font-family: Fraunces, 'Source Serif 4', Georgia, serif; font-weight: 500; font-size: 88px; line-height: 1;
+    letter-spacing: -1.5px; color: #141B2D; font-variation-settings: "opsz" 144;
+  }
+  .tag {
+    position: absolute; left: 445px; top: 214px;
+    font-family: Inter, sans-serif; font-weight: 400; font-size: 22px; line-height: 1;
+    letter-spacing: 4.6px; text-transform: uppercase; color: #B8985A;
+  }
+  svg { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+  <div class="grid"></div>
+  <div class="grid-major"></div>
+  <div class="word">Tenorworth</div>
+  <div class="tag">AI, deployed with care.</div>
+  <svg width="1584" height="396" viewBox="0 0 1584 396" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <!-- tenor line: steady, one measured rise, brass point -->
+    <path d="M440,318 L1040,318 C1165,318 1262,284 1372,252" fill="none" stroke="#141B2D" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="1398" cy="244" r="11" fill="#B8985A"/>
+  </svg>
+</body>
+</html>

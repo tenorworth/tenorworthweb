@@ -50,6 +50,7 @@ const orgSchema = {
   description: SITE.description,
   areaServed: SITE.region,
   logo: `${SITE.url}/icon-512.png`,
+  ...(SITE.linkedinCompany ? { sameAs: [SITE.linkedinCompany] } : {}),
 };
 ---
 <!doctype html>

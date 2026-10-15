@@ -20,7 +20,8 @@ const year = new Date().getFullYear();
       <ul class="space-y-2.5">
         <li><a href={`mailto:${SITE.email}`} class="transition hover:text-brass-deep">{SITE.email}</a></li>
         {SITE.phone && <li><a href={`tel:${SITE.phone}`} class="transition hover:text-brass-deep">{SITE.phoneDisplay}</a></li>}
-        {SITE.linkedin && <li><a href={SITE.linkedin} rel="me noopener" class="transition hover:text-brass-deep">LinkedIn</a></li>}
+        {SITE.linkedinCompany && <li><a href={SITE.linkedinCompany} rel="noopener" class="transition hover:text-brass-deep">LinkedIn</a></li>}
+        {SITE.linkedin && <li><a href={SITE.linkedin} rel="me noopener" class="transition hover:text-brass-deep">Arka on LinkedIn</a></li>}
         <li><a href="/privacy" class="transition hover:text-brass-deep">Privacy</a></li>
       </ul>
     </div>

@@ -58,6 +58,7 @@ const article = {
     name: SITE.name,
     url: SITE.url,
     logo: { '@type': 'ImageObject', url: `${SITE.url}/icon-512.png` },
+    ...(SITE.linkedinCompany ? { sameAs: [SITE.linkedinCompany] } : {}),
   },
   spatialCoverage: { '@type': 'Place', name: `${d.region}, California` },
   citation: d.sources.map((s) => ({ '@type': 'CreativeWork', name: s.title, url: s.url })),
