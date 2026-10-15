@@ -41,8 +41,11 @@ cd frontend  && npm run build                 # tsc + vite build → frontend/di
   `marketing/src/config/site.ts`. Add a page → add its route to `ROUTES` there.
 - **Astro output**: `build.format = 'file'` so `/services` → `services.html`; nginx's
   `try_files $uri $uri.html` depends on this. Don't change one without the other.
-- **CTAs** carry `data-event="cta_click" data-source="..."`; the GA component forwards
-  them automatically when `PUBLIC_GA_MEASUREMENT_ID` is set.
+- **Analytics**: any element with `data-event="..."` becomes a GA event on click, with its
+  other `data-*` attributes as parameters (CTAs use `cta_click` + `data-source`). Scripted
+  events go through `track()` in `src/lib/analytics.ts`. The event catalogue, the booking
+  funnel and the GA admin steps (key events, custom dimensions) are in `marketing/ANALYTICS.md`;
+  a new parameter must be registered there as a custom dimension or it never shows in reports.
 - **LinkedIn Insight Tag** (`LinkedInInsight.astro`) loads only when `PUBLIC_LINKEDIN_PARTNER_ID`
   is set, and never for browsers sending Global Privacy Control — `privacy.astro` promises
   that, so change both together. `PUBLIC_LINKEDIN_CONVERSION_BOOKING` (optional) is the

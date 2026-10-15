@@ -70,7 +70,7 @@ const breadcrumbs = {
   <section class="container-wide mt-20">
     {posts.length > 0 ? (
       <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((p, i) => <PostCard post={p} eager={i === 0} />)}
+        {posts.map((p, i) => <PostCard post={p} eager={i === 0} list="industry_hub" />)}
       </div>
     ) : (
       <p class="text-ink-muted">Writing for this sector is in progress. <a href="/insights" class="link-quiet text-ink">See all insights</a>.</p>

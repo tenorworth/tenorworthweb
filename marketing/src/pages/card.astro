@@ -100,6 +100,8 @@ const fieldClass =
   </section>
 
   <script>
+    import { track } from '../lib/analytics';
+
     const root = document.getElementById('card') as HTMLElement;
     const base = root.dataset.functionsUrl as string;
     const contactEmail = root.dataset.email as string;
@@ -108,6 +110,9 @@ const fieldClass =
     // ?s=qr / ?s=nfc records how they arrived; anything else is just "card".
     const via = (new URLSearchParams(location.search).get('s') || '').toLowerCase();
     const source = /^[a-z]{1,10}$/.test(via) ? `card_${via}` : 'card';
+    // One event per open, so QR scans and NFC taps get their own line in GA.
+    track('card_open', { card_source: source });
+    for (const el of root.querySelectorAll<HTMLElement>('[data-event]')) el.dataset.cardSource = source;
 
     const form = document.getElementById('notes-form') as HTMLFormElement;
     const error = document.getElementById('notes-error') as HTMLElement;
@@ -133,6 +138,7 @@ const fieldClass =
       if (hasTurnstile() && !token) {
         fail('Please finish the spam check above, then send. If nothing is showing, give it a moment and try again.');
         document.querySelector('.cf-turnstile')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        track('lead_failed', { source, reason: 'turnstile_missing' });
         return;
       }
       const payload = {
@@ -156,16 +162,17 @@ const fieldClass =
           turnstile()?.reset();
           const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
           fail(fields || data.error || fallback);
+          track('lead_failed', { source, reason: data.fields ? 'validation' : String(data.error || 'server'), status: res.status });
           return;
         }
         (document.getElementById('notes-email') as HTMLElement).textContent = String(payload.email ?? '').trim().toLowerCase();
         form.hidden = true;
         done.hidden = false;
-        const w = window as unknown as { gtag?: (...args: unknown[]) => void };
-        w.gtag?.('event', 'card_notes_requested', { source });
+        track('card_notes_requested', { source, card_source: source, has_met: Boolean(met) });
       } catch {
         turnstile()?.reset();
         fail(fallback);
+        track('lead_failed', { source, reason: 'network' });
       } finally {
         btn.disabled = false;
       }

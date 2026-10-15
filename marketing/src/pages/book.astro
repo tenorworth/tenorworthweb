@@ -98,6 +98,8 @@ const fieldClass =
   </section>
 
   <script>
+    import { track } from '../lib/analytics';
+
     type Slot = { start: string; end: string };
 
     const root = document.getElementById('booking') as HTMLElement;
@@ -140,6 +142,16 @@ const fieldClass =
     const turnstileToken = () =>
       (form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value ?? '';
 
+    // Funnel: lead_form_start → lead_submitted → slots_viewed → slot_selected
+    // → booking_confirmed, with lead_failed / booking_failed on the error
+    // paths. Every event carries `source` (the CTA that brought them here).
+    let formStarted = false;
+    form.addEventListener('focusin', () => {
+      if (formStarted) return;
+      formStarted = true;
+      track('lead_form_start', { source });
+    });
+
     async function api(path: string, init?: RequestInit) {
       const res = await fetch(`${base}${path}`, { ...init, headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) } });
       const data = await res.json().catch(() => ({}));
@@ -156,6 +168,7 @@ const fieldClass =
       if (hasTurnstile() && !token) {
         show(leadError, 'Please finish the spam check above, then choose a time. If nothing is showing, give it a moment and try again.');
         document.querySelector('.cf-turnstile')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        track('lead_failed', { source, reason: 'turnstile_missing' });
         return;
       }
       const payload = {
@@ -165,21 +178,24 @@ const fieldClass =
       };
       btn.disabled = true;
       try {
-        const { ok, data } = await api('/lead', { method: 'POST', body: JSON.stringify(payload) });
+        const { ok, status, data } = await api('/lead', { method: 'POST', body: JSON.stringify(payload) });
         if (!ok) {
           turnstile()?.reset();
           const fields = data.fields ? Object.values(data.fields as Record<string, string>).join(' ') : '';
           show(leadError, fields || data.error || fallback);
+          track('lead_failed', { source, reason: data.fields ? 'validation' : String(data.error || 'server'), status });
           return;
         }
         leadId = data.id;
         leadEmail = String(payload.email ?? '').trim().toLowerCase();
         hide(form);
         show(slotsStep);
+        track('lead_submitted', { source, has_company: Boolean(fd.get('company')), has_message: Boolean(fd.get('message')) });
         loadSlots();
       } catch {
         turnstile()?.reset();
         show(leadError, fallback);
+        track('lead_failed', { source, reason: 'network' });
       } finally {
         btn.disabled = false;
       }
@@ -192,10 +208,15 @@ const fieldClass =
       slotsEl.replaceChildren();
       show(slotsLoading);
       try {
-        const { ok, data } = await api('/availability');
+        const { ok, status, data } = await api('/availability');
         hide(slotsLoading);
-        if (!ok) { show(bookError, data.error || fallback); return; }
+        if (!ok) {
+          show(bookError, data.error || fallback);
+          track('slots_failed', { source, reason: String(data.error || 'server'), status });
+          return;
+        }
         const slots: Slot[] = data.slots ?? [];
+        track('slots_viewed', { source, slot_count: slots.length });
         if (slots.length === 0) { show(slotsEmpty); return; }
 
         const byDay = new Map<string, Slot[]>();
@@ -225,6 +246,7 @@ const fieldClass =
       } catch {
         hide(slotsLoading);
         show(bookError, fallback);
+        track('slots_failed', { source, reason: 'network' });
       }
     }
 
@@ -241,6 +263,9 @@ const fieldClass =
       hide(bookError);
       show(confirmBar);
       confirmBar.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      // Lead time in whole days, so the report shows how far out people book.
+      const daysOut = Math.round((new Date(slot.start).getTime() - Date.now()) / 86_400_000);
+      track('slot_selected', { source, days_out: daysOut });
     }
 
     $('clear-btn').addEventListener('click', () => {
@@ -266,6 +291,7 @@ const fieldClass =
         if (!ok) {
           if (status === 409) { await loadSlots(); }
           show(bookError, data.error || fallback);
+          track('booking_failed', { source, reason: status === 409 ? 'slot_taken' : String(data.error || 'server'), status });
           return;
         }
         hide(slotsStep);
@@ -275,16 +301,14 @@ const fieldClass =
         if (data.meetUrl) { meet.href = data.meetUrl; show(meet); }
         show(doneStep);
         doneStep.scrollIntoView({ block: 'start', behavior: 'smooth' });
-        const w = window as unknown as {
-          gtag?: (...args: unknown[]) => void;
-          lintrk?: (cmd: 'track', data: { conversion_id: number }) => void;
-        };
-        w.gtag?.('event', 'booking_confirmed', { source });
+        track('booking_confirmed', { source });
         // LinkedIn conversion, created in Campaign Manager. lintrk is absent when the tag is off.
+        const w = window as unknown as { lintrk?: (cmd: 'track', data: { conversion_id: number }) => void };
         const liConversion = Number(import.meta.env.PUBLIC_LINKEDIN_CONVERSION_BOOKING);
         if (liConversion) w.lintrk?.('track', { conversion_id: liConversion });
       } catch {
         show(bookError, fallback);
+        track('booking_failed', { source, reason: 'network' });
       } finally {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = label;

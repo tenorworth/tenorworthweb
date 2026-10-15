@@ -99,13 +99,13 @@ const faq = d.faq.length
     {faq && <script is:inline type="application/ld+json" set:html={JSON.stringify(faq)} />}
   </Fragment>
 
-  <article>
+  <article id="post" data-article-slug={post.id} data-article-title={d.title} data-industry={industry.id} data-reading-time={minutes}>
     <header class="container-wide pt-16 sm:pt-24">
       <nav aria-label="Breadcrumb" class="text-xs uppercase tracking-[var(--tracking-eyebrow)] text-ink-muted">
         <ol class="flex flex-wrap gap-x-3 gap-y-1">
           <li><a href="/insights" class="transition hover:text-brass-deep">Insights</a></li>
           <li aria-hidden="true" class="text-brass">·</li>
-          <li><a href={hubUrl} class="transition hover:text-brass-deep">{industry.name}</a></li>
+          <li><a href={hubUrl} class="transition hover:text-brass-deep" data-event="industry_hub_click" data-industry={industry.id} data-placement="breadcrumb">{industry.name}</a></li>
         </ol>
       </nav>
       <h1 class="mt-6 max-w-4xl text-4xl leading-[1.08] text-balance sm:text-5xl lg:text-6xl">{d.title}</h1>
@@ -161,7 +161,7 @@ const faq = d.faq.length
           {d.sources.map((s, i) => (
             <li class="flex gap-4">
               <span class="w-5 shrink-0 text-brass-deep">{i + 1}.</span>
-              <a href={s.url} rel="noopener nofollow" target="_blank" class="link-quiet text-ink-muted">{s.title}</a>
+              <a href={s.url} rel="noopener nofollow" target="_blank" class="link-quiet text-ink-muted" data-event="source_click" data-article-slug={post.id} data-industry={industry.id}>{s.title}</a>
             </li>
           ))}
         </ol>
@@ -174,7 +174,7 @@ const faq = d.faq.length
         <div class="space-y-4 text-ink-muted sm:col-span-8">
           <p><span class="font-medium text-ink">What we deploy.</span> {industry.deployed}</p>
           <p><span class="font-medium text-ink">What we measure.</span> {industry.measure}</p>
-          <p><a href={industry.service} class="link-quiet text-ink">See the engagement that fits</a> or <a href={hubUrl} class="link-quiet text-ink">read more on {industry.lower}</a>.</p>
+          <p><a href={industry.service} class="link-quiet text-ink" data-event="service_click" data-industry={industry.id} data-article-slug={post.id}>See the engagement that fits</a> or <a href={hubUrl} class="link-quiet text-ink" data-event="industry_hub_click" data-industry={industry.id} data-placement="in_practice">read more on {industry.lower}</a>.</p>
         </div>
       </div>
     </aside>
@@ -184,7 +184,7 @@ const faq = d.faq.length
     <section class="container-wide mt-24 border-t border-cream-line pt-16">
       <p class="eyebrow">More insights</p>
       <div class="mt-8 grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
-        {related.map((p) => <PostCard post={p} />)}
+        {related.map((p) => <PostCard post={p} list="related" />)}
       </div>
     </section>
   )}
@@ -194,4 +194,49 @@ const faq = d.faq.length
     headline="Bring us the workflow behind this article."
     body="Thirty minutes. We will tell you whether AI belongs in it, what the compliance question really is, and what a fixed-scope pilot would cost."
   />
+
+  <script>
+    import { track } from '../lib/analytics';
+
+    // article_view on load, article_read at 25/50/75 percent of the article
+    // body, article_complete when the end scrolls into view. Each carries the
+    // slug, industry and reading time so GA can rank posts by how far people
+    // get, not just by how many land.
+    const article = document.getElementById('post') as HTMLElement;
+    const meta = {
+      article_slug: article.dataset.articleSlug,
+      article_title: article.dataset.articleTitle,
+      industry: article.dataset.industry,
+      reading_time: Number(article.dataset.readingTime),
+    };
+    track('article_view', meta);
+
+    const marks = [25, 50, 75];
+    const openedAt = Date.now();
+    let completed = false;
+    let ticking = false;
+
+    function check() {
+      ticking = false;
+      const rect = article.getBoundingClientRect();
+      const top = rect.top + window.scrollY;
+      const seen = window.scrollY + window.innerHeight - top;
+      const pct = Math.min(100, Math.max(0, (seen / rect.height) * 100));
+      while (marks.length && pct >= marks[0]) {
+        track('article_read', { ...meta, percent_scrolled: marks.shift() });
+      }
+      if (!completed && pct >= 98) {
+        completed = true;
+        track('article_complete', { ...meta, seconds_on_page: Math.round((Date.now() - openedAt) / 1000) });
+      }
+      if (completed && marks.length === 0) window.removeEventListener('scroll', onScroll);
+    }
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(check);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    check();
+  </script>
 </BaseLayout>

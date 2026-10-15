@@ -94,6 +94,9 @@ build-time ids: `PUBLIC_GA_MEASUREMENT_ID` (Google Analytics, `G-…`),
 `PUBLIC_LINKEDIN_PARTNER_ID`, `PUBLIC_TURNSTILE_SITE_KEY`. Astro inlines them at build,
 so a change needs a redeploy (`bash deploy/update.sh`) to reach the live site.
 
+The events the site sends to Google Analytics, and the one-time GA admin setup (key
+events, custom dimensions, funnels), are in [marketing/ANALYTICS.md](marketing/ANALYTICS.md).
+
 ### Manual deploy
 
 ```bash

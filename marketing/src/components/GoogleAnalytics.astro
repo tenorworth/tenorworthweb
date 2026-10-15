@@ -1,24 +1,38 @@
 ---
-// Renders nothing unless PUBLIC_GA_MEASUREMENT_ID is set. Mirrors clicks on
-// [data-event] elements into GA so CTAs need no per-button wiring.
+// Renders nothing unless PUBLIC_GA_MEASUREMENT_ID is set.
+//
+// Two jobs beyond the standard tag:
+//  1. `content_group` on the config call, so reports split by site section
+//     (home, services, insights, book, card, other) without path regexes.
+//  2. Clicks on any [data-event] element become a GA event named by that
+//     attribute, with the element's other data-* attributes as parameters
+//     (camelCase keys become snake_case) plus link_url for anchors. CTAs and
+//     content links need no per-element script.
+//
+// Event catalogue and GA admin setup: marketing/ANALYTICS.md.
 const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID;
+const { contentGroup = 'other' } = Astro.props as { contentGroup?: string };
 ---
 {gaId && (
   <Fragment>
     <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-    <script is:inline define:vars={{ gaId }}>
+    <script is:inline define:vars={{ gaId, contentGroup }}>
       window.dataLayer = window.dataLayer || [];
       function gtag() { dataLayer.push(arguments); }
       window.gtag = gtag;
       gtag('js', new Date());
-      gtag('config', gaId);
+      gtag('config', gaId, { content_group: contentGroup });
       document.addEventListener('click', function (e) {
         try {
           var el = e.target instanceof Element ? e.target.closest('[data-event]') : null;
           if (!el) return;
           var params = {};
           var ds = el.dataset || {};
-          for (var k in ds) { if (k !== 'event') params[k] = ds[k]; }
+          for (var k in ds) {
+            if (k === 'event') continue;
+            var key = k.replace(/[A-Z]/g, function (c) { return '_' + c.toLowerCase(); });
+            params[key] = String(ds[k]).slice(0, 100);
+          }
           if (el.href) params.link_url = el.href;
           gtag('event', el.getAttribute('data-event'), params);
         } catch (_) {}

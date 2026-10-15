@@ -28,6 +28,17 @@ const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE
 const canonicalUrl = canonical ?? new URL(Astro.url.pathname, SITE.url).toString();
 const ogImageUrl = new URL(ogImage, SITE.url).toString();
 
+// GA content group: the site section this page belongs to. Reports can then
+// compare Insights against Services without path regexes.
+const path = Astro.url.pathname;
+const contentGroup =
+  path === '/' ? 'home'
+  : path.startsWith('/insights') ? 'insights'
+  : path.startsWith('/services') ? 'services'
+  : path.startsWith('/book') ? 'book'
+  : path.startsWith('/card') ? 'card'
+  : 'other';
+
 const orgSchema = {
   '@context': 'https://schema.org',
   '@type': 'ProfessionalService',
@@ -79,7 +90,7 @@ const orgSchema = {
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name} Insights`} href="/rss.xml" />
     <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
     <slot name="head" />
-    <GoogleAnalytics />
+    <GoogleAnalytics contentGroup={contentGroup} />
     <LinkedInInsight />
   </head>
   <body class="flex min-h-screen flex-col">
