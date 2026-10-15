@@ -12,13 +12,14 @@ import creditUnion from '../assets/blog/credit-union-branch-desk-orange-county.j
 import lawFirm from '../assets/blog/law-firm-office-century-city.jpg';
 import biotech from '../assets/blog/biotech-qa-office-san-diego.jpg';
 import hotel from '../assets/blog/hotel-back-office-palm-springs.jpg';
+import claims from '../assets/blog/claims-desk-woodland-hills.jpg';
 
 // Hero photograph (brand/image-prompts.md, C1). Drop the file at
 // src/assets/home/hero.{jpg,png}; until it exists the hero stays text-only.
 const heroFiles = import.meta.glob<{ default: ImageMetadata }>('../assets/home/hero.{jpg,jpeg,png}', { eager: true });
 const hero = Object.values(heroFiles)[0]?.default;
 
-// "Who we serve" rows reuse the five sector photographs shot for Insights, so
+// "Who we serve" rows reuse the six sector photographs shot for Insights, so
 // the room a visitor recognises on the home page is the room they land in on
 // the sector hub.
 const sectorPhotos: Record<IndustryId, ImageMetadata> = {
@@ -27,6 +28,7 @@ const sectorPhotos: Record<IndustryId, ImageMetadata> = {
   'law-firms': lawFirm,
   'life-sciences': biotech,
   hospitality: hotel,
+  insurance: claims,
 };
 const sectorAlts: Record<IndustryId, string> = {
   'community-healthcare': 'Front desk of a community health clinic in Los Angeles before opening',
@@ -34,6 +36,7 @@ const sectorAlts: Record<IndustryId, string> = {
   'law-firms': 'An office in a Century City law firm with a walnut desk and case files',
   'life-sciences': 'Quality-assurance office beside a San Diego biotech lab, SOP binders on a shelf',
   hospitality: 'Back office of a Palm Springs boutique hotel at dusk',
+  insurance: 'Claims desk in a Woodland Hills insurance office, a thick claim file open beside a desk calendar',
 };
 
 const engagements = [

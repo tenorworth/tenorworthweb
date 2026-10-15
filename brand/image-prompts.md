@@ -81,6 +81,20 @@ light through a slatted window. + style suffix.
 - Deployed: "Nightly reconciliation and reporting automation; guest messaging drafted for a human to send."
 - Measure: "Hours to close the night. Errors caught before the owner's report."
 
+### A6. Insurance brokerage and claims adjusting (San Fernando Valley, Orange County, San Diego)
+**Photo prompt:** Claims desk in a mid-size insurance office in Woodland Hills, late
+afternoon, a thick claim file open with photo prints and an estimate printout clipped
+to it, a desk calendar with one date circled, a brass letter tray, San Fernando Valley
+haze through half-open blinds. + style suffix.
+
+**Strip:**
+- Problem: "A submission is forty PDFs and a loss run. A claim file is four hundred pages on a 40-day clock."
+- Deployed: "Intake and file-summary agents that cite the policy form and the regulation. The adjuster decides, and the log shows it."
+- Measure: "Hours per submission. Days from proof of claim to decision."
+
+Until the photograph exists, `marketing/src/assets/blog/claims-desk-woodland-hills.jpg` is a
+text-free brand-token placeholder; replace the file, keep the name.
+
 ---
 
 ## B. Charts and diagrams (SVG specs)

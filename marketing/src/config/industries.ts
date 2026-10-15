@@ -1,4 +1,4 @@
-// The five sectors the practice serves, with the copy the Insights hub pages
+// The six sectors the practice serves, with the copy the Insights hub pages
 // use. Keep the problem / deployed / measure lines in step with
 // brand/image-prompts.md section A.
 export const INDUSTRY_IDS = [
@@ -7,6 +7,7 @@ export const INDUSTRY_IDS = [
   'law-firms',
   'life-sciences',
   'hospitality',
+  'insurance',
 ] as const;
 
 export type IndustryId = (typeof INDUSTRY_IDS)[number];
@@ -85,6 +86,18 @@ export const INDUSTRIES: Record<IndustryId, Industry> = {
     deployed: 'Nightly reconciliation and reporting automation; guest messaging drafted for a human to send.',
     measure: 'Hours to close the night. Errors caught before the owner’s report.',
     service: '/services#pilot',
+  },
+  insurance: {
+    id: 'insurance',
+    name: 'Insurance brokers and claims adjusters',
+    lower: 'insurance brokers and claims adjusters',
+    short: 'Insurance',
+    region: 'the San Fernando Valley, Orange County and San Diego',
+    cities: ['Woodland Hills', 'Irvine', 'Newport Beach', 'San Diego'],
+    problem: 'A submission is forty PDFs and a loss run. A claim file is four hundred pages on a 40-day clock.',
+    deployed: 'Intake and file-summary agents that cite the policy form and the regulation. The adjuster decides, and the log shows it.',
+    measure: 'Hours per submission. Days from proof of claim to decision.',
+    service: '/services#roadmap',
   },
 };
 
