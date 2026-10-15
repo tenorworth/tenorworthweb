@@ -65,6 +65,7 @@ export interface Prospect {
   title: string | null;
   phone: string | null;
   linkedin_url: string | null;
+  website: string | null;
   sector: string | null;
   offer: string | null;
   value_usd: number | null;

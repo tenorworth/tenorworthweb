@@ -10,6 +10,7 @@ migrations/20260910000000_rate_limits.sql      rate_limits + rate_limit_hit()
 migrations/20261007000000_pipeline.sql         prospects, prospect_events, admin read on leads/bookings
 migrations/20261013201542_field_calendar.sql   field_events, field_event_registrations, field_calendar_runs
 migrations/20261015181302_prospect_met_at_problems.sql   prospects.met_at, prospects.problems
+migrations/20261015183656_prospect_website.sql           prospects.website (full http(s) URL)
 functions/lead           POST  save name/email/company/message → { id }
 functions/availability   GET   open 30-min slots = business hours − Google busy
 functions/book           POST  calendar event, booking row, invitation email from hi@, heads-up email
@@ -162,6 +163,8 @@ existing lead.
 columns: `met_at` (the event or place we met; the form suggests earlier values
 and field calendar events from the last 90 days) and `problems` (what the
 prospect said is hard for them). The pipeline filters by `met_at` and searches both.
+`migrations/20261015183656_prospect_website.sql` adds `website`, checked to be an
+http(s) URL; the form adds `https://` when it is typed without one.
 
 Only a signed-in user whose `app_metadata.role` is `admin` can read any of
 it, enforced by RLS. Admins can read `leads` and `bookings` but never write

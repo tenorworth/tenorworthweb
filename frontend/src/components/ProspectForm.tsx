@@ -2,7 +2,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { MANUAL_SOURCES, OFFERS, SECTORS, useMetAtOptions, type Prospect, type ProspectInput } from '../lib/pipeline';
 
 type Values = Record<
-  'name' | 'email' | 'company' | 'title' | 'phone' | 'linkedin_url' | 'sector' | 'offer' |
+  'name' | 'email' | 'company' | 'title' | 'phone' | 'linkedin_url' | 'website' | 'sector' | 'offer' |
   'value_usd' | 'source' | 'met_at' | 'problems' | 'next_step' | 'next_step_due',
   string
 >;
@@ -14,6 +14,7 @@ const toValues = (p?: Prospect | null): Values => ({
   title: p?.title ?? '',
   phone: p?.phone ?? '',
   linkedin_url: p?.linkedin_url ?? '',
+  website: p?.website ?? '',
   sector: p?.sector ?? '',
   offer: p?.offer ?? '',
   value_usd: p?.value_usd != null ? String(p.value_usd) : '',
@@ -23,6 +24,9 @@ const toValues = (p?: Prospect | null): Values => ({
   next_step: p?.next_step ?? '',
   next_step_due: p?.next_step_due ?? '',
 });
+
+// "parkerriggs.com" is what people type; the column wants a linkable URL.
+const toUrl = (s: string | null) => (s && !/^https?:\/\//i.test(s) ? `https://${s}` : s);
 
 // Empty strings become nulls so a cleared field clears the column.
 function toInput(v: Values): ProspectInput & { name: string } {
@@ -35,6 +39,7 @@ function toInput(v: Values): ProspectInput & { name: string } {
     title: val(v.title),
     phone: val(v.phone),
     linkedin_url: val(v.linkedin_url),
+    website: toUrl(val(v.website)),
     sector: val(v.sector),
     offer: val(v.offer),
     value_usd: value ? Number(value) : null,
@@ -87,6 +92,9 @@ export default function ProspectForm({
         <Field label="LinkedIn" id="linkedin_url">
           <input id="linkedin_url" className="field" type="url" placeholder="https://www.linkedin.com/in/…" value={v.linkedin_url} onChange={set('linkedin_url')} />
         </Field>
+        <Field label="Website" id="website">
+          <input id="website" className="field" inputMode="url" maxLength={192} placeholder="example.com" value={v.website} onChange={set('website')} />
+        </Field>
         <Field label="Sector" id="sector">
           <select id="sector" className="field" value={v.sector} onChange={set('sector')}>
             <option value="">—</option>
@@ -110,7 +118,7 @@ export default function ProspectForm({
             </select>
           </Field>
         )}
-        <Field label="Met at" id="met_at">
+        <Field label="Met at" id="met_at" wide>
           <input id="met_at" className="field" list="met_at_options" maxLength={200} placeholder="Event or place" value={v.met_at} onChange={set('met_at')} />
           <datalist id="met_at_options">
             {metAtOptions?.map((o) => <option key={o} value={o} />)}
@@ -139,9 +147,9 @@ export default function ProspectForm({
   );
 }
 
-function Field({ label, id, children }: { label: string; id: string; children: ReactNode }) {
+function Field({ label, id, wide = false, children }: { label: string; id: string; wide?: boolean; children: ReactNode }) {
   return (
-    <div>
+    <div className={wide ? 'sm:col-span-2' : undefined}>
       <label className="label" htmlFor={id}>{label}</label>
       {children}
     </div>

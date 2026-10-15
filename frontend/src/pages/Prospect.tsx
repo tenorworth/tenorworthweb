@@ -121,6 +121,7 @@ function ContactLinks({ p }: { p: P }) {
   const links = [
     p.email && { href: `mailto:${p.email}`, label: p.email },
     p.phone && { href: `tel:${p.phone.replace(/[^+0-9]/g, '')}`, label: p.phone },
+    p.website && /^https?:\/\//.test(p.website) && { href: p.website, label: p.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '') },
     p.linkedin_url && /^https:\/\//.test(p.linkedin_url) && { href: p.linkedin_url, label: 'LinkedIn' },
   ].filter(Boolean) as { href: string; label: string }[];
   if (!links.length) return null;
