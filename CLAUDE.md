@@ -107,7 +107,8 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   Voice), shown on /card, the vCard, /contact, the footer and the org schema; empty = omitted everywhere.
 - **Prospect pipeline** at `app.tenorworth.com/pipeline` (frontend `src/pages/Pipeline.tsx`,
   `Prospect.tsx`, `ProspectNew.tsx`; queries in `src/lib/pipeline.ts`). Stages: new → contacted →
-  call booked → discovery → proposal sent → won / lost. `prospects` is one row per person;
+  call booked → discovery → proposal sent → won / lost. `prospects` is one row per person,
+  with free-text `met_at` (event or place met) and `problems` (what they said is hard);
   triggers attach each website lead by email and move the prospect to "call booked" on a
   booking, so the Edge Functions know nothing about it. Email + password sign-in, sign-ups
   off (main admin `tenorworth@gmail.com`, created in the dashboard); access is RLS on

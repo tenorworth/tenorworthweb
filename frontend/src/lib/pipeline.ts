@@ -69,6 +69,8 @@ export interface Prospect {
   offer: string | null;
   value_usd: number | null;
   source: string | null;
+  met_at: string | null;
+  problems: string | null;
   stage: Stage;
   stage_changed_at: string;
   next_step: string | null;
@@ -133,6 +135,37 @@ export function useProspects() {
       fail(error);
       return data as Prospect[];
     },
+  });
+}
+
+// Suggestions for "Met at": places already used, plus field calendar events
+// from the last 90 days, so a prospect met at a listed event gets its exact title.
+export function useMetAtOptions() {
+  return useQuery({
+    queryKey: ['met-at-options'],
+    queryFn: async () => {
+      const today = new Date();
+      const since = new Date(today.getTime() - 90 * 86_400_000);
+      const ymd = (d: Date) => d.toISOString().slice(0, 10);
+      const [used, events] = await Promise.all([
+        db().from('prospects').select('met_at').not('met_at', 'is', null),
+        db()
+          .from('field_events')
+          .select('title, starts_at')
+          .gte('starts_at', ymd(since))
+          .lte('starts_at', `${ymd(today)}T23:59:59`)
+          .eq('cancelled', false)
+          .order('starts_at', { ascending: false }),
+      ]);
+      fail(used.error);
+      fail(events.error);
+      const names = [
+        ...(used.data as { met_at: string }[]).map((r) => r.met_at),
+        ...(events.data as { title: string }[]).map((r) => r.title),
+      ];
+      return [...new Set(names)];
+    },
+    staleTime: 5 * 60_000,
   });
 }
 

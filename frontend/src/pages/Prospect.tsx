@@ -34,6 +34,7 @@ function Detail({ p }: { p: P }) {
     offerLabel(p.offer),
     p.value_usd ? formatUsd(p.value_usd) : null,
     sourceLabel(p.source),
+    p.met_at && `Met at ${p.met_at}`,
   ].filter(Boolean);
 
   function destroy() {
@@ -52,6 +53,7 @@ function Detail({ p }: { p: P }) {
         </p>
         <p className="mt-2 text-xs text-ink-muted">{facts.join(' · ')}</p>
         <ContactLinks p={p} />
+        {p.problems && <p className="mt-4 max-w-2xl whitespace-pre-wrap border-l-2 border-brass pl-3 text-sm">{p.problems}</p>}
       </div>
 
       <section className="mt-6" aria-label="Stage">

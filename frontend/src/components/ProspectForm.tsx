@@ -1,9 +1,9 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { MANUAL_SOURCES, OFFERS, SECTORS, type Prospect, type ProspectInput } from '../lib/pipeline';
+import { MANUAL_SOURCES, OFFERS, SECTORS, useMetAtOptions, type Prospect, type ProspectInput } from '../lib/pipeline';
 
 type Values = Record<
   'name' | 'email' | 'company' | 'title' | 'phone' | 'linkedin_url' | 'sector' | 'offer' |
-  'value_usd' | 'source' | 'next_step' | 'next_step_due',
+  'value_usd' | 'source' | 'met_at' | 'problems' | 'next_step' | 'next_step_due',
   string
 >;
 
@@ -18,6 +18,8 @@ const toValues = (p?: Prospect | null): Values => ({
   offer: p?.offer ?? '',
   value_usd: p?.value_usd != null ? String(p.value_usd) : '',
   source: p?.source ?? '',
+  met_at: p?.met_at ?? '',
+  problems: p?.problems ?? '',
   next_step: p?.next_step ?? '',
   next_step_due: p?.next_step_due ?? '',
 });
@@ -37,6 +39,8 @@ function toInput(v: Values): ProspectInput & { name: string } {
     offer: val(v.offer),
     value_usd: value ? Number(value) : null,
     source: val(v.source),
+    met_at: val(v.met_at),
+    problems: val(v.problems),
     next_step: val(v.next_step),
     next_step_due: val(v.next_step_due),
   };
@@ -54,6 +58,7 @@ export default function ProspectForm({
   showSource: boolean;
 }) {
   const [v, setV] = useState<Values>(() => toValues(initial));
+  const { data: metAtOptions } = useMetAtOptions();
   const set = (k: keyof Values) => (e: { target: { value: string } }) => setV({ ...v, [k]: e.target.value });
 
   function submit(e: FormEvent) {
@@ -105,7 +110,17 @@ export default function ProspectForm({
             </select>
           </Field>
         )}
+        <Field label="Met at" id="met_at">
+          <input id="met_at" className="field" list="met_at_options" maxLength={200} placeholder="Event or place" value={v.met_at} onChange={set('met_at')} />
+          <datalist id="met_at_options">
+            {metAtOptions?.map((o) => <option key={o} value={o} />)}
+          </datalist>
+        </Field>
       </div>
+
+      <Field label="Problems they face" id="problems">
+        <textarea id="problems" className="field" rows={3} maxLength={5000} placeholder="What they said is hard, in their words where you can." value={v.problems} onChange={set('problems')} />
+      </Field>
 
       <div className="grid gap-4 sm:grid-cols-[1fr_11rem]">
         <Field label="Next step" id="next_step">

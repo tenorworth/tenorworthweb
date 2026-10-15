@@ -11,10 +11,16 @@ export default function Pipeline() {
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('');
   const [source, setSource] = useState('');
+  const [metAt, setMetAt] = useState('');
   const [dragOver, setDragOver] = useState<Stage | null>(null);
 
   const sources = useMemo(
     () => [...new Set((prospects ?? []).map((p) => p.source ?? ''))].sort(),
+    [prospects],
+  );
+
+  const metAts = useMemo(
+    () => [...new Set((prospects ?? []).map((p) => p.met_at).filter((m): m is string => !!m))].sort(),
     [prospects],
   );
 
@@ -23,9 +29,10 @@ export default function Pipeline() {
     return (prospects ?? []).filter((p) =>
       (!sector || p.sector === sector) &&
       (!source || (p.source ?? '') === source) &&
-      (!needle || [p.name, p.company, p.email].some((v) => v?.toLowerCase().includes(needle))),
+      (!metAt || p.met_at === metAt) &&
+      (!needle || [p.name, p.company, p.email, p.met_at, p.problems].some((v) => v?.toLowerCase().includes(needle))),
     );
-  }, [prospects, search, sector, source]);
+  }, [prospects, search, sector, source, metAt]);
 
   const open = (prospects ?? []).filter((p) => OPEN_STAGES.includes(p.stage));
   const openValue = open.reduce((sum, p) => sum + (p.value_usd ?? 0), 0);
@@ -57,7 +64,7 @@ export default function Pipeline() {
         <input
           className="field max-w-xs"
           type="search"
-          placeholder="Search name, company, email"
+          placeholder="Search name, company, problems"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search prospects"
@@ -70,6 +77,12 @@ export default function Pipeline() {
           <option value="">All sources</option>
           {sources.map((s) => <option key={s} value={s}>{sourceLabel(s || null)}</option>)}
         </select>
+        {metAts.length > 0 && (
+          <select className="field w-auto max-w-xs" value={metAt} onChange={(e) => setMetAt(e.target.value)} aria-label="Met at">
+            <option value="">Met anywhere</option>
+            {metAts.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+        )}
       </div>
 
       {error && <p className="mt-6 text-sm text-brass-deep">{(error as Error).message}</p>}
@@ -135,6 +148,7 @@ function Card({ p }: { p: Prospect }) {
             {[p.company, sectorLabel(p.sector)].filter(Boolean).join(' · ')}
           </p>
         )}
+        {p.problems && <p className="mt-1.5 line-clamp-2 text-xs text-ink-muted" title={p.problems}>{p.problems}</p>}
         {p.next_step && !closed && (
           <p className={`mt-2 text-xs ${overdue ? 'font-medium text-brass-deep' : 'text-ink'}`}>
             {overdue ? 'Overdue: ' : ''}{p.next_step}
@@ -142,7 +156,7 @@ function Card({ p }: { p: Prospect }) {
           </p>
         )}
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-ink-muted">
-          <span className="truncate">{sourceLabel(p.source)}</span>
+          <span className="truncate" title={p.met_at ?? undefined}>{p.met_at ?? sourceLabel(p.source)}</span>
           <span className="shrink-0">
             {p.value_usd ? `${formatUsd(p.value_usd)} · ` : ''}{daysSince(p.stage_changed_at)}d
           </span>
