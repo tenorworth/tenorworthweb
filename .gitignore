@@ -37,3 +37,6 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+
+# Go-to-market working files: prospect lists, partner lists, outreach drafts (names of real people; never commit)
+gtm/
