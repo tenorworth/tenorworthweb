@@ -21,6 +21,7 @@ const UA = 'Mozilla/5.0 (compatible; Tenorworth/1.0; +https://tenorworth.com)';
 const FETCH_MS = 12_000;
 const CRAWL_MS = 45_000;
 const MAX_PAGES = 9;
+const MAX_HTML_CHARS = 1_500_000; // the people are near the top; parsing more costs CPU the plan caps
 const MAX_IMAGE_BYTES = 8_000_000;
 
 // ── Names ───────────────────────────────────────────────────────────────────
@@ -98,7 +99,7 @@ async function getHtml(url: string): Promise<{ url: string; html: string } | nul
   const res = await get(url, 'text/html,application/xhtml+xml');
   if (!res || !(res.headers.get('content-type') ?? '').includes('html')) return null;
   const html = await res.text();
-  return { url: res.url || url, html: html.slice(0, 3_000_000) };
+  return { url: res.url || url, html: html.slice(0, MAX_HTML_CHARS) };
 }
 
 // ── Gravatar ────────────────────────────────────────────────────────────────
@@ -266,12 +267,8 @@ function candidatesOn(doc: Document, page: string, n: NameParts): Candidate[] {
 
   // The one image next to a short block of text that names them: climb from
   // the name until a container holds an image, and give up once it holds more
-  // than one, since that is a grid of several people. Most pages never mention
-  // the person, so check the whole text once before walking every element.
-  if (!re.test(norm(doc.body?.textContent ?? ''))) return out;
-  for (const el of doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, strong, b, a, div, li, figcaption, td, dt, dd')) {
-    const text = norm(el.textContent ?? '');
-    if (text.length > 80 || !re.test(text)) continue;
+  // than one, since that is a grid of several people.
+  for (const el of namedElements(doc, n, re)) {
     let node: Element | null = el;
     for (let level = 0; node && level <= 5; level++, node = node.parentElement) {
       const imgs = imagesIn(node, page);
@@ -283,6 +280,34 @@ function candidatesOn(doc: Document, page: string, n: NameParts): Candidate[] {
     }
   }
   return out;
+}
+
+// Smallest elements whose short text names the person. Starts from text nodes
+// holding the last name, so a long page costs one pass over its text rather
+// than reading the text of every element.
+function namedElements(doc: Document, n: NameParts, re: RegExp): Element[] {
+  const lastWord = n.last.split(' ').pop()!;
+  const found = new Set<Element>();
+  const stack: Node[] = doc.body ? [doc.body] : [];
+  while (stack.length) {
+    const node = stack.pop()!;
+    if (node.nodeType === 1) {
+      if (!/^(SCRIPT|STYLE|NOSCRIPT|SVG|TEMPLATE)$/i.test(node.nodeName)) stack.push(...node.childNodes);
+      continue;
+    }
+    if (node.nodeType !== 3 || !norm(node.textContent ?? '').includes(lastWord)) continue;
+    // A couple of levels up catches "<strong>Jane</strong> Doe".
+    let el = node.parentElement;
+    for (let i = 0; el && i < 3; i++, el = el.parentElement) {
+      const text = norm(el.textContent ?? '');
+      if (text.length > 80) break;
+      if (re.test(text)) {
+        found.add(el);
+        break;
+      }
+    }
+  }
+  return [...found];
 }
 
 // ── Checking the image ──────────────────────────────────────────────────────

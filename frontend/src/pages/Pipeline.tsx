@@ -181,7 +181,9 @@ function PhotoSearch({ photos }: { photos: ReturnType<typeof useFindPhotos> }) {
   if (run?.active) {
     return (
       <p className="flex items-center gap-3 text-sm text-ink-muted" aria-live="polite">
-        <span>Finding photos {run.done} of {run.total} · {run.found} found</span>
+        <span>
+          Finding photos {run.done} of {run.total} · {run.found} found{run.failed > 0 && ` · ${run.failed} skipped`}
+        </span>
         <button type="button" onClick={stop} className="hover:text-brass-deep">Stop</button>
       </p>
     );
@@ -190,7 +192,9 @@ function PhotoSearch({ photos }: { photos: ReturnType<typeof useFindPhotos> }) {
     <>
       {run && (
         <p className={`text-sm ${run.error ? 'text-brass-deep' : 'text-ink-muted'}`} aria-live="polite">
-          {run.error ? `Stopped: ${run.error}` : `Found ${run.found} of ${run.done}`}
+          {run.error
+            ? `Stopped: ${run.error}`
+            : `Found ${run.found} of ${run.done}${run.failed > 0 ? ` · ${run.failed} skipped, run again to retry` : ''}`}
         </p>
       )}
       {remaining > 0 && (

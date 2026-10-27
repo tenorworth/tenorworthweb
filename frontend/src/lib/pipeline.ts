@@ -298,8 +298,9 @@ type PhotoFields = Pick<Prospect, 'photo_url' | 'photo_source' | 'photo_checked_
 async function lookUpPhoto(id: string): Promise<PhotoFields & { found: boolean }> {
   const { data, error } = await db().functions.invoke('prospect-photo', { body: { id } });
   if (error) {
-    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
-    throw new Error(detail?.error ?? error.message);
+    const res = (error as { context?: Response }).context;
+    const detail = await res?.json?.().catch(() => null);
+    throw new Error(detail?.error ?? (res?.status ? `${error.message} (${res.status})` : error.message));
   }
   return data;
 }
@@ -320,28 +321,39 @@ export function useFindPhoto() {
   });
 }
 
-/** "Find photos": searches every prospect never searched, three at a time. */
+/**
+ * "Find photos": searches every prospect never searched, three at a time. One
+ * failed request (a site that ran the function out of time) is skipped and
+ * left for the next run; three in a row means the function or the session is
+ * down, so the run stops.
+ */
 export function useFindPhotos(prospects: Prospect[] | undefined) {
   const qc = useQueryClient();
   const todo = useMemo(() => (prospects ?? []).filter(needsPhotoSearch), [prospects]);
-  const [run, setRun] = useState<{ total: number; done: number; found: number; active: boolean; error?: string } | null>(null);
+  const [run, setRun] = useState<{
+    total: number; done: number; found: number; failed: number; active: boolean; error?: string;
+  } | null>(null);
   const stopped = useRef(false);
   useEffect(() => () => { stopped.current = true; }, []);
 
   async function start() {
     const queue = [...todo];
+    let failedInARow = 0;
     stopped.current = false;
-    setRun({ total: queue.length, done: 0, found: 0, active: true });
+    setRun({ total: queue.length, done: 0, found: 0, failed: 0, active: true });
     const worker = async () => {
       for (let p = queue.shift(); p && !stopped.current; p = queue.shift()) {
         try {
           const { found, ...photo } = await lookUpPhoto(p.id);
+          failedInARow = 0;
           patchCached(qc, p.id, photo);
           setRun((r) => r && { ...r, done: r.done + 1, found: r.found + (found ? 1 : 0) });
         } catch (e) {
-          // A failed call is the function or the session, not this prospect.
-          stopped.current = true;
-          setRun((r) => r && { ...r, error: (e as Error).message });
+          const fatal = ++failedInARow >= 3;
+          if (fatal) stopped.current = true;
+          setRun((r) => r && {
+            ...r, done: r.done + 1, failed: r.failed + 1, error: fatal ? (e as Error).message : r.error,
+          });
         }
       }
     };
