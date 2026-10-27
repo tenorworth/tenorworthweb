@@ -306,8 +306,11 @@ const guessAudience = (title: string | null): Audience =>
   : /information|technology|digital|cio|cto|systems/i.test(title ?? '') ? 'tech'
   : 'exec';
 
+// Decided 2026-10-27: $7,500 for the first two credit-union Roadmaps (list $15,000). The field
+// stays editable, and a value typed once is remembered in this browser.
+const FOUNDING_RATE = '$7,500';
 function readRate(): string {
-  try { return localStorage.getItem('tw.foundingRate') || '[fee]'; } catch { return '[fee]'; }
+  try { return localStorage.getItem('tw.foundingRate') || FOUNDING_RATE; } catch { return FOUNDING_RATE; }
 }
 
 function Composer({ a, p, initialStep, onClose }: { a: A; p: P; initialStep: Step; onClose: () => void }) {

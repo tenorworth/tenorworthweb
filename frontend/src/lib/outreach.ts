@@ -33,7 +33,7 @@ export interface Context {
   orgName: string;
   specificLine: string | null;
   sector: string | null;
-  foundingRate: string;  // "[fee]" until the number is decided
+  foundingRate: string;  // $7,500 as decided 2026-10-27; the composer lets it be edited
 }
 
 export const PLACEHOLDER = '[specific line about them]';
