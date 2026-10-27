@@ -167,6 +167,20 @@ prospect said is hard for them). The pipeline filters by `met_at` and searches b
 `migrations/20261015183656_prospect_website.sql` adds `website`, checked to be an
 http(s) URL; the form adds `https://` when it is typed without one.
 
+`migrations/20261027083142_prospect_photo.sql` adds `photo_url`, `photo_source`
+and `photo_checked_at`, filled by the `prospect-photo` Edge Function: Gravatar
+for the email, then the leadership, team and bio pages of the website (from its
+links and sitemap, at most nine pages). It keeps an image only when its alt text
+or file name names the person, or it is the one image beside their name, and
+only if it loads over https and is portrait-shaped, so logos, badges and group
+shots drop out. It never touches LinkedIn, and sites that block bots are a
+miss, not something to work around. The image stays where it was found; the app
+loads it with no referrer and falls back to initials. A prospect page searches
+the first time it is opened; **Find photos** on the pipeline searches everyone
+never searched, three at a time. A link can also be pasted on the prospect page.
+Deploy with `supabase functions deploy prospect-photo`; JWT verification is off
+in `config.toml` because the function checks the caller's admin role itself.
+
 Only a signed-in user whose `app_metadata.role` is `admin` can read any of
 it, enforced by RLS. Admins can read `leads` and `bookings` but never write
 them; those stay service-role only.

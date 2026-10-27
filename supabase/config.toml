@@ -13,3 +13,7 @@ verify_jwt = false
 
 [functions.book]
 verify_jwt = false
+
+# Called by the admin app. It checks the caller's session and admin role itself.
+[functions.prospect-photo]
+verify_jwt = false

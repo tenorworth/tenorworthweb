@@ -113,6 +113,9 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   call booked → discovery → proposal sent → won / lost. `prospects` is one row per person,
   with free-text `met_at` (event or place met), `problems` (what they said is hard) and
   `website` (full https URL);
+  photos are `photo_url`, hotlinked with no referrer, found by the `prospect-photo` Edge Function
+  (Gravatar, then the company site's team pages; never LinkedIn) when a prospect is first opened
+  or via "Find photos" on the board;
   triggers attach each website lead by email and move the prospect to "call booked" on a
   booking, so the Edge Functions know nothing about it. Email + password sign-in, sign-ups
   off (main admin `tenorworth@gmail.com`, created in the dashboard); access is RLS on

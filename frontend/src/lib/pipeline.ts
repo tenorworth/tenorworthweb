@@ -1,6 +1,7 @@
 // Prospect pipeline: types, labels and the Supabase queries behind /pipeline.
 // Schema and access rules: supabase/migrations/20261007000000_pipeline.sql.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
 
 export const STAGES = [
@@ -80,6 +81,9 @@ export interface Prospect {
   account_id: string | null;      // the organisation on /accounts; filled by company name
   sequence_step: number;          // highest outbound touch logged (0 = none)
   last_touch_at: string | null;
+  photo_url: string | null;          // headshot, hotlinked from where it was found
+  photo_source: string | null;       // page it came from, or 'gravatar'; null if pasted
+  photo_checked_at: string | null;   // last photo search; null = never
   created_at: string;
   updated_at: string;
 }
@@ -283,6 +287,69 @@ export function useDeleteNote(prospectId: string) {
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['activity', prospectId] }),
   });
+}
+
+// ── Photos ──────────────────────────────────────────────────────────────────
+// The prospect-photo Edge Function searches Gravatar and the prospect's
+// website and saves what it finds on the row (supabase/functions/prospect-photo).
+
+type PhotoFields = Pick<Prospect, 'photo_url' | 'photo_source' | 'photo_checked_at'>;
+
+async function lookUpPhoto(id: string): Promise<PhotoFields & { found: boolean }> {
+  const { data, error } = await db().functions.invoke('prospect-photo', { body: { id } });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new Error(detail?.error ?? error.message);
+  }
+  return data;
+}
+
+function patchCached(qc: QueryClient, id: string, patch: Partial<Prospect>) {
+  qc.setQueryData<Prospect[]>(['prospects'], (list) => list?.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  qc.setQueryData<Prospect | null>(['prospect', id], (p) => (p ? { ...p, ...patch } : p));
+}
+
+/** Never searched, and something to search with. */
+export const needsPhotoSearch = (p: Prospect) => !p.photo_url && !p.photo_checked_at && !!(p.website || p.email);
+
+export function useFindPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: lookUpPhoto,
+    onSuccess: ({ found: _found, ...photo }, id) => patchCached(qc, id, photo),
+  });
+}
+
+/** "Find photos": searches every prospect never searched, three at a time. */
+export function useFindPhotos(prospects: Prospect[] | undefined) {
+  const qc = useQueryClient();
+  const todo = useMemo(() => (prospects ?? []).filter(needsPhotoSearch), [prospects]);
+  const [run, setRun] = useState<{ total: number; done: number; found: number; active: boolean; error?: string } | null>(null);
+  const stopped = useRef(false);
+  useEffect(() => () => { stopped.current = true; }, []);
+
+  async function start() {
+    const queue = [...todo];
+    stopped.current = false;
+    setRun({ total: queue.length, done: 0, found: 0, active: true });
+    const worker = async () => {
+      for (let p = queue.shift(); p && !stopped.current; p = queue.shift()) {
+        try {
+          const { found, ...photo } = await lookUpPhoto(p.id);
+          patchCached(qc, p.id, photo);
+          setRun((r) => r && { ...r, done: r.done + 1, found: r.found + (found ? 1 : 0) });
+        } catch (e) {
+          // A failed call is the function or the session, not this prospect.
+          stopped.current = true;
+          setRun((r) => r && { ...r, error: (e as Error).message });
+        }
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    setRun((r) => r && { ...r, active: false });
+  }
+
+  return { remaining: todo.length, run, start, stop: () => { stopped.current = true; } };
 }
 
 // ── Formatting ──────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
-// Request helpers shared by the public booking functions: CORS, JSON bodies,
-// field trimming, caller IP.
+// Request helpers shared by the Edge Functions: CORS, JSON bodies, field
+// trimming, caller IP.
 // Origins: comma-separated ALLOWED_ORIGINS secret, else the defaults below.
+// Functions the admin app calls pass APP_ORIGINS instead.
 
 const DEFAULT_ORIGINS = [
   'https://tenorworth.com',
@@ -15,10 +16,12 @@ const configured = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
 
 export const ORIGINS = configured.length ? configured : DEFAULT_ORIGINS;
 
-export function corsHeaders(req: Request): Record<string, string> {
+export const APP_ORIGINS = ['https://app.tenorworth.com', 'http://localhost:3001'];
+
+export function corsHeaders(req: Request, origins = ORIGINS): Record<string, string> {
   const origin = req.headers.get('origin') ?? '';
   return {
-    'Access-Control-Allow-Origin': ORIGINS.includes(origin) ? origin : ORIGINS[0],
+    'Access-Control-Allow-Origin': origins.includes(origin) ? origin : origins[0],
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'content-type, authorization, apikey, x-client-info',
     'Access-Control-Max-Age': '86400',
@@ -26,16 +29,16 @@ export function corsHeaders(req: Request): Record<string, string> {
   };
 }
 
-export function preflight(req: Request): Response | null {
+export function preflight(req: Request, origins = ORIGINS): Response | null {
   if (req.method !== 'OPTIONS') return null;
-  return new Response(null, { status: 204, headers: corsHeaders(req) });
+  return new Response(null, { status: 204, headers: corsHeaders(req, origins) });
 }
 
-export function json(req: Request, body: unknown, status = 200): Response {
+export function json(req: Request, body: unknown, status = 200, origins = ORIGINS): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...corsHeaders(req),
+      ...corsHeaders(req, origins),
       'content-type': 'application/json; charset=utf-8',
       'cache-control': 'no-store',
     },

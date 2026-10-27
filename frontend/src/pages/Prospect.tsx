@@ -1,11 +1,12 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 import ProspectForm from '../components/ProspectForm';
 import { useAccountName } from '../lib/accounts';
 import {
-  MANUAL_SOURCES, STAGES, daysSince, formatDateTime, formatUsd, offerLabel, sectorLabel, sourceLabel, stageLabel,
-  useActivity, useAddNote, useDeleteNote, useDeleteProspect, useProspect, useUpdateProspect,
-  type Lead, type Prospect as P, type ProspectEvent,
+  MANUAL_SOURCES, STAGES, daysSince, formatDateTime, formatUsd, needsPhotoSearch, offerLabel, sectorLabel,
+  sourceLabel, stageLabel, useActivity, useAddNote, useDeleteNote, useDeleteProspect, useFindPhoto, useProspect,
+  useUpdateProspect, type Lead, type Prospect as P, type ProspectEvent,
 } from '../lib/pipeline';
 
 export default function Prospect() {
@@ -47,15 +48,19 @@ function Detail({ p }: { p: P }) {
 
   return (
     <>
-      <div className="mt-4">
-        <h1 className="text-3xl">{p.name}</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          {[p.title, p.company].filter(Boolean).join(', ') || 'No company yet'}
-          <AccountLink id={p.account_id} />
-        </p>
-        <p className="mt-2 text-xs text-ink-muted">{facts.join(' · ')}</p>
-        <ContactLinks p={p} />
-        {p.problems && <p className="mt-4 max-w-2xl whitespace-pre-wrap border-l-2 border-brass pl-3 text-sm">{p.problems}</p>}
+      <div className="mt-4 flex items-start gap-4 sm:gap-5">
+        <Avatar name={p.name} url={p.photo_url} size={72} />
+        <div className="min-w-0">
+          <h1 className="text-3xl">{p.name}</h1>
+          <p className="mt-1 text-sm text-ink-muted">
+            {[p.title, p.company].filter(Boolean).join(', ') || 'No company yet'}
+            <AccountLink id={p.account_id} />
+          </p>
+          <p className="mt-2 text-xs text-ink-muted">{facts.join(' · ')}</p>
+          <Photo p={p} />
+          <ContactLinks p={p} />
+          {p.problems && <p className="mt-4 max-w-2xl whitespace-pre-wrap border-l-2 border-brass pl-3 text-sm">{p.problems}</p>}
+        </div>
       </div>
 
       <section className="mt-6" aria-label="Stage">
@@ -122,6 +127,77 @@ function AccountLink({ id }: { id: string | null }) {
       {' · '}
       <Link to={`/accounts/${data.id}`} className="text-brass-deep underline-offset-2 hover:underline">Account</Link>
     </>
+  );
+}
+
+// Where the photo came from, with a search the first time the prospect is
+// opened ("Find photos" on the pipeline does everyone at once), and a way to
+// paste an image link instead. Kept out of the details form, whose values are
+// read once and would put back an empty photo after a search fills one.
+function Photo({ p }: { p: P }) {
+  const find = useFindPhoto();
+  const update = useUpdateProspect();
+  const searched = useRef(false);
+  const [link, setLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searched.current || !needsPhotoSearch(p)) return;
+    searched.current = true;
+    find.mutate(p.id);
+  }, [p, find]);
+
+  const action = (label: string, onClick: () => void) => (
+    <button type="button" onClick={onClick} className="underline-offset-2 hover:text-brass-deep hover:underline">{label}</button>
+  );
+  const sourceHost = p.photo_source && /^https?:\/\//.test(p.photo_source)
+    ? new URL(p.photo_source).hostname.replace(/^www\./, '')
+    : null;
+
+  let status: ReactNode;
+  if (find.isPending) status = 'Looking for a photo…';
+  else if (p.photo_url) {
+    status = p.photo_source === 'gravatar' ? 'Photo from Gravatar'
+      : sourceHost ? <>Photo from <a href={p.photo_source!} target="_blank" rel="noreferrer" className="text-brass-deep underline-offset-2 hover:underline">{sourceHost}</a></>
+      : 'Photo added by hand';
+  } else status = p.photo_checked_at ? 'No photo found' : 'No photo';
+
+  if (link !== null) {
+    const save = (e: FormEvent) => {
+      e.preventDefault();
+      update.mutate(
+        { id: p.id, patch: { photo_url: link.trim() || null, photo_source: null } },
+        { onSuccess: () => setLink(null) },
+      );
+    };
+    return (
+      <form onSubmit={save} className="mt-2 flex max-w-xl flex-wrap items-center gap-2 text-xs">
+        <input
+          className="field min-w-0 flex-1 py-1.5 text-xs"
+          type="url"
+          pattern="https://.*"
+          maxLength={2000}
+          placeholder="https://… link to an image of them"
+          aria-label="Photo link"
+          autoFocus
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+        />
+        <button type="submit" className="btn-secondary px-3 py-1.5 text-xs" disabled={update.isPending}>Save</button>
+        <button type="button" onClick={() => setLink(null)} className="text-ink-muted hover:text-brass-deep">Cancel</button>
+        {update.error && <span className="w-full text-brass-deep">{update.error.message}</span>}
+      </form>
+    );
+  }
+
+  const idle = !find.isPending;
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+      <span>{status}</span>
+      {idle && (p.website || p.email) && action(p.photo_checked_at || p.photo_url ? 'Search again' : 'Find photo', () => find.mutate(p.id))}
+      {idle && action('Use a link', () => setLink(p.photo_url ?? ''))}
+      {idle && p.photo_url && action('Remove', () => update.mutate({ id: p.id, patch: { photo_url: null, photo_source: null } }))}
+      {find.error && <span className="text-brass-deep">{find.error.message}</span>}
+    </p>
   );
 }
 

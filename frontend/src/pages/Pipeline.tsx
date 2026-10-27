@@ -1,13 +1,15 @@
 import { useMemo, useState, type DragEvent } from 'react';
 import { Link } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 import {
   OPEN_STAGES, SECTORS, STAGES, daysSince, formatDue, formatUsd, isOverdue, sectorLabel, sourceLabel,
-  useProspects, useUpdateProspect, type Prospect, type Stage,
+  useFindPhotos, useProspects, useUpdateProspect, type Prospect, type Stage,
 } from '../lib/pipeline';
 
 export default function Pipeline() {
   const { data: prospects, isLoading, error } = useProspects();
   const update = useUpdateProspect();
+  const photos = useFindPhotos(prospects);
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('');
   const [source, setSource] = useState('');
@@ -57,7 +59,10 @@ export default function Pipeline() {
             <Stat label="Overdue next steps" value={String(overdue)} accent={overdue > 0} />
           </dl>
         </div>
-        <Link to="/pipeline/new" className="btn-primary">Add prospect</Link>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <PhotoSearch photos={photos} />
+          <Link to="/pipeline/new" className="btn-primary">Add prospect</Link>
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
@@ -142,12 +147,17 @@ function Card({ p }: { p: Prospect }) {
       className="cursor-grab rounded-md border border-cream-line bg-white/70 shadow-sm transition hover:border-brass active:cursor-grabbing"
     >
       <Link to={`/pipeline/${p.id}`} className="block p-3" draggable={false}>
-        <p className="font-medium leading-snug">{p.name}</p>
-        {(p.company || p.sector) && (
-          <p className="mt-0.5 truncate text-xs text-ink-muted">
-            {[p.company, sectorLabel(p.sector)].filter(Boolean).join(' · ')}
-          </p>
-        )}
+        <div className="flex items-start gap-2.5">
+          <Avatar name={p.name} url={p.photo_url} size={36} />
+          <div className="min-w-0">
+            <p className="font-medium leading-snug">{p.name}</p>
+            {(p.company || p.sector) && (
+              <p className="mt-0.5 truncate text-xs text-ink-muted">
+                {[p.company, sectorLabel(p.sector)].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+        </div>
         {p.problems && <p className="mt-1.5 line-clamp-2 text-xs text-ink-muted" title={p.problems}>{p.problems}</p>}
         {p.next_step && !closed && (
           <p className={`mt-2 text-xs ${overdue ? 'font-medium text-brass-deep' : 'text-ink'}`}>
@@ -163,6 +173,37 @@ function Card({ p }: { p: Prospect }) {
         </div>
       </Link>
     </li>
+  );
+}
+
+function PhotoSearch({ photos }: { photos: ReturnType<typeof useFindPhotos> }) {
+  const { run, remaining, start, stop } = photos;
+  if (run?.active) {
+    return (
+      <p className="flex items-center gap-3 text-sm text-ink-muted" aria-live="polite">
+        <span>Finding photos {run.done} of {run.total} · {run.found} found</span>
+        <button type="button" onClick={stop} className="hover:text-brass-deep">Stop</button>
+      </p>
+    );
+  }
+  return (
+    <>
+      {run && (
+        <p className={`text-sm ${run.error ? 'text-brass-deep' : 'text-ink-muted'}`} aria-live="polite">
+          {run.error ? `Stopped: ${run.error}` : `Found ${run.found} of ${run.done}`}
+        </p>
+      )}
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={start}
+          className="btn-secondary"
+          title="Looks for each person's headshot on Gravatar and their company website"
+        >
+          Find photos <span className="ml-1.5 font-normal text-ink-muted">{remaining}</span>
+        </button>
+      )}
+    </>
   );
 }
 
