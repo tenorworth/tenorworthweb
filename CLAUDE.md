@@ -119,6 +119,12 @@ Live on HTTPS since 2026-09-07: tenorworth.com (marketing) and app.tenorworth.co
   `app_metadata.role = 'admin'` (never `user_metadata`). Sector ids in
   `pipeline.ts` mirror `INDUSTRY_IDS` in `industries.ts` — change both together. Setup:
   `supabase/README.md#prospect-pipeline-apptenorworthcompipeline`.
+- **Accounts** at `app.tenorworth.com/accounts` (frontend `src/pages/Accounts.tsx`, `Account.tsx`;
+  queries in `src/lib/accounts.ts`, outreach templates in `src/lib/outreach.ts`): one record per
+  credit union or partner firm with its people, a composer that fills the touch templates and opens
+  Mail or LinkedIn, and a `touches` log whose database trigger sets each person's next step. People
+  attach to accounts by company name. Templates mirror `gtm/outreach-templates.md` (gitignored);
+  change both together. Schema: `supabase/README.md#accounts-and-touches-apptenorworthcomaccounts`.
 - **Field calendar** at `app.tenorworth.com/events` (frontend `src/pages/Events.tsx`, queries and
   calendar links in `src/lib/events.ts`): San Diego sector events, mixers and speaker calls, with
   price, going/maybe/skip, add-to-calendar links and an "Ask Claude to register" queue. Tables

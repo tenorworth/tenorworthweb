@@ -11,6 +11,7 @@ migrations/20261007000000_pipeline.sql         prospects, prospect_events, admin
 migrations/20261013201542_field_calendar.sql   field_events, field_event_registrations, field_calendar_runs
 migrations/20261015181302_prospect_met_at_problems.sql   prospects.met_at, prospects.problems
 migrations/20261015183656_prospect_website.sql           prospects.website (full http(s) URL)
+migrations/20261026120000_accounts_touches.sql          accounts, touches, prospects.account_id + sequence_step + last_touch_at
 functions/lead           POST  save name/email/company/message → { id }
 functions/availability   GET   open 30-min slots = business hours − Google busy
 functions/book           POST  calendar event, booking row, invitation email from hi@, heads-up email
@@ -190,6 +191,29 @@ One-time setup, in this order:
    The role lives in the session token, so sign out and back in after
    changing it.
 5. Sign in at https://app.tenorworth.com/login.
+
+## Accounts and touches (app.tenorworth.com/accounts)
+
+`migrations/20261026120000_accounts_touches.sql` adds the organisation layer over the
+pipeline:
+
+- `accounts`: one row per credit union, broker or referral-partner firm (`kind` buyer or
+  partner), with the NCUA facts (charter, assets, members, staff, branches), the research
+  `trigger`, the `opening_line` the templates insert verbatim, notes, and a `status`
+  (untouched → working → replied → meeting → client, or paused / lost).
+- `prospects.account_id`, filled by company name the way leads attach by email: creating
+  an account picks up every prospect carrying that company name, and a prospect saved with
+  a matching company gets its account filled in. `prospects.sequence_step` and
+  `last_touch_at` summarise the outreach.
+- `touches`: every contact with a person, outbound or inbound, with channel, optional
+  sequence step, subject and body. Inserting an outbound touch with a step sets the
+  prospect's next step and due date (note → email in 3 days → founding-client email 8 days
+  later → close 10 days after that), moves a "new" prospect to "contacted" and the account
+  to "working". A reply sets the next step to answering it today and the account to
+  "replied". Prospect stage changes carry the account to "meeting" and "client".
+
+Admin-only RLS, like the pipeline. The lists themselves (credit unions from the NCUA call
+reports, partner firms) are loaded with ad-hoc inserts and are not in the repo.
 
 ## Field calendar (app.tenorworth.com/events)
 

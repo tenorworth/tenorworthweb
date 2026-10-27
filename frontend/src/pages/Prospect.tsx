@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import ProspectForm from '../components/ProspectForm';
+import { useAccountName } from '../lib/accounts';
 import {
   MANUAL_SOURCES, STAGES, daysSince, formatDateTime, formatUsd, offerLabel, sectorLabel, sourceLabel, stageLabel,
   useActivity, useAddNote, useDeleteNote, useDeleteProspect, useProspect, useUpdateProspect,
@@ -50,6 +51,7 @@ function Detail({ p }: { p: P }) {
         <h1 className="text-3xl">{p.name}</h1>
         <p className="mt-1 text-sm text-ink-muted">
           {[p.title, p.company].filter(Boolean).join(', ') || 'No company yet'}
+          <AccountLink id={p.account_id} />
         </p>
         <p className="mt-2 text-xs text-ink-muted">{facts.join(' · ')}</p>
         <ContactLinks p={p} />
@@ -108,6 +110,17 @@ function Detail({ p }: { p: P }) {
 
         <Activity p={p} />
       </div>
+    </>
+  );
+}
+
+function AccountLink({ id }: { id: string | null }) {
+  const { data } = useAccountName(id);
+  if (!data) return null;
+  return (
+    <>
+      {' · '}
+      <Link to={`/accounts/${data.id}`} className="text-brass-deep underline-offset-2 hover:underline">Account</Link>
     </>
   );
 }

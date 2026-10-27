@@ -77,6 +77,9 @@ export interface Prospect {
   next_step: string | null;
   next_step_due: string | null;
   lost_reason: string | null;
+  account_id: string | null;      // the organisation on /accounts; filled by company name
+  sequence_step: number;          // highest outbound touch logged (0 = none)
+  last_touch_at: string | null;
   created_at: string;
   updated_at: string;
 }
